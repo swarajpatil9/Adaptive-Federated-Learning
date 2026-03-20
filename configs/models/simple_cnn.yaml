@@ -1,0 +1,14 @@
+# SimpleCNN for MNIST
+model:
+  name: simple_cnn
+  num_classes: 10
+  dropout_rate: 0.5
+
+description: |
+  SimpleCNN for MNIST dataset.
+
+  Architecture: 2 conv layers + 2 FC layers
+  Parameters: ~62K
+  Suitable for: CPU training, fast convergence
+
+  Used in FedAvg and FedProx papers for MNIST experiments.

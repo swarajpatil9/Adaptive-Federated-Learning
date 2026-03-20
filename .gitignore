@@ -43,11 +43,9 @@ results/metrics/*
 !results/models/.gitkeep
 !results/metrics/.gitkeep
 
-# Data (downloaded datasets)
-data/raw/*
-data/processed/*
-!data/raw/.gitkeep
-!data/processed/.gitkeep
+# Data (downloaded datasets - DO NOT COMMIT)
+data/
+!data/.gitkeep
 
 # IDE
 .vscode/

@@ -1,0 +1,19 @@
+# CNN for CIFAR-10
+model:
+  name: cnn
+  num_classes: 10
+  dropout_rate: 0.5
+  use_batch_norm: false  # false for faster communication, true for better accuracy
+
+description: |
+  Medium CNN for CIFAR-10.
+
+  Architecture: 4 conv layers + 2 FC layers
+  Parameters: ~122K
+  Suitable for: FL experiments, communication-accuracy trade-offs
+
+  This is the standard model used in FedProx, SCAFFOLD for CIFAR-10.
+
+  BatchNorm trade-off:
+  - Without BN: ~122K params, faster communication
+  - With BN: ~123K params, +1-2% accuracy

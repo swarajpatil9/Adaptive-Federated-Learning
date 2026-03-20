@@ -1,0 +1,30 @@
+# MNIST dataset with Non-IID Dirichlet partitioning
+# Simulates realistic heterogeneous data distributions
+
+dataset:
+  name: mnist
+  data_root: ./data
+  download: true
+
+partitioning:
+  num_clients: 100
+  strategy: dirichlet
+  alpha: 0.5 # Lower = more heterogeneous (try 0.1 for extreme)
+  min_samples_per_client: 10
+  seed: 42
+
+dataloader:
+  batch_size: 32
+  test_batch_size: 128
+  num_workers: 4
+
+description: |
+  MNIST with Non-IID Dirichlet partitioning (α=0.5).
+
+  The Dirichlet distribution controls label skew:
+  - α → ∞: approaches IID
+  - α = 1.0: moderate heterogeneity
+  - α = 0.5: significant label skew (this config)
+  - α = 0.1: extreme non-IID (each client has 1-3 classes)
+
+  This setting follows FedProx and FedOpt papers for realistic FL scenarios.

@@ -1,0 +1,24 @@
+# CNNLarge for CIFAR-10/100
+model:
+  name: cnn_large
+  num_classes: 100  # Set to 10 for CIFAR-10, 100 for CIFAR-100
+  dropout_rate: 0.5
+  use_batch_norm: true  # Recommended for larger models
+
+description: |
+  Large CNN for CIFAR-10/100.
+
+  Architecture: 6 conv layers + 2 FC layers
+  Parameters: ~1.2M
+  Suitable for: CIFAR-100, studying communication cost vs accuracy
+
+  Note: This model is larger than typical FL models.
+  Use for:
+  - CIFAR-100 experiments (needs more capacity)
+  - Communication-accuracy trade-off studies
+  - Comparison baseline
+
+  Trade-off:
+  - 10× more parameters than CNN
+  - +3-5% accuracy on CIFAR-10
+  - 10× more communication cost per round

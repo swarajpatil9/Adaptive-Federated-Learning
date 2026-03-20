@@ -1,0 +1,22 @@
+# MNIST dataset with IID partitioning
+# Use this configuration for baseline experiments
+
+dataset:
+  name: mnist
+  data_root: ./data
+  download: true
+
+partitioning:
+  num_clients: 100
+  strategy: iid
+  seed: 42
+
+dataloader:
+  batch_size: 32
+  test_batch_size: 128
+  num_workers: 4
+
+description: |
+  MNIST with IID (Independent and Identically Distributed) partitioning.
+  Each client receives approximately 600 samples with uniform class distribution.
+  This represents the ideal case where all clients have similar data distributions.

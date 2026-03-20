@@ -1,0 +1,26 @@
+# CIFAR-100 dataset with IID partitioning
+# 100 classes - useful for testing with many categories
+
+dataset:
+  name: cifar100
+  data_root: ./data
+  download: true
+
+partitioning:
+  num_clients: 100
+  strategy: iid
+  seed: 42
+
+dataloader:
+  batch_size: 64
+  test_batch_size: 256
+  num_workers: 4
+
+description: |
+  CIFAR-100 with IID partitioning.
+
+  With 100 classes and 100 clients, each client gets approximately
+  500 samples with uniform class distribution. This is useful for:
+  - Testing scalability with many classes
+  - Experiments with fine-grained categorization
+  - Evaluating models on more complex visual tasks

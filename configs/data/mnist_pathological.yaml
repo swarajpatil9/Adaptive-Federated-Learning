@@ -1,0 +1,30 @@
+# MNIST dataset with Pathological Non-IID partitioning
+# Classic setup from the original FedAvg paper
+
+dataset:
+  name: mnist
+  data_root: ./data
+  download: true
+
+partitioning:
+  num_clients: 100
+  strategy: pathological
+  shards_per_client: 2 # Each client gets exactly 2 shards (2 classes)
+  seed: 42
+
+dataloader:
+  batch_size: 32
+  test_batch_size: 128
+  num_workers: 4
+
+description: |
+  MNIST with Pathological Non-IID partitioning (FedAvg paper method).
+
+  Data is sorted by label, divided into shards, and each client receives
+  exactly 2 shards. This means each client has data from at most 2 classes.
+
+  This is the original non-IID setup from:
+  McMahan et al. "Communication-Efficient Learning of Deep Networks
+  from Decentralized Data" (2017)
+
+  Use this to reproduce classic FedAvg experiments.

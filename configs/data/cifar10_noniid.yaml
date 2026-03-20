@@ -1,0 +1,28 @@
+# CIFAR-10 dataset with Non-IID Dirichlet partitioning
+# More challenging dataset with moderate heterogeneity
+
+dataset:
+  name: cifar10
+  data_root: ./data
+  download: true
+
+partitioning:
+  num_clients: 100
+  strategy: dirichlet
+  alpha: 0.1 # Extreme heterogeneity for challenging experiments
+  min_samples_per_client: 20
+  seed: 42
+
+dataloader:
+  batch_size: 64
+  test_batch_size: 256
+  num_workers: 4
+
+description: |
+  CIFAR-10 with extreme Non-IID Dirichlet partitioning (α=0.1).
+
+  Each client typically has 1-3 dominant classes with very few samples
+  from other classes. This represents a challenging FL scenario often
+  used in research papers (SCAFFOLD, FedNova, FedDyn).
+
+  Average samples per client: ~500 (50,000 / 100 clients)
