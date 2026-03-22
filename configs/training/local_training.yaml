@@ -1,0 +1,42 @@
+# Local client training configuration
+# Used for client-side SGD in federated learning
+
+training:
+  # Local epochs per FL round
+  epochs: 5
+
+  # Optimizer settings
+  optimizer: sgd
+  lr: 0.01
+  momentum: 0.9
+  weight_decay: 0.0001
+
+  # Loss function
+  criterion: cross_entropy
+
+  # Device selection
+  device: null  # null for auto-detect, or 'cpu', 'cuda', 'mps'
+
+  # Reproducibility
+  deterministic: true
+
+  # Logging
+  verbose: false
+
+description: |
+  Standard training configuration for FedAvg-style clients.
+
+  Hyperparameters:
+  - 5 local epochs per round (standard in FL literature)
+  - SGD with momentum 0.9 (McMahan et al., FedAvg 2017)
+  - Learning rate 0.01 (typical for MNIST/CIFAR with SGD)
+  - Weight decay 1e-4 (mild regularization)
+
+  These settings work well for:
+  - MNIST with SimpleCNN
+  - CIFAR-10 with CNN
+
+  For different datasets/models, you may need to tune:
+  - lr: Higher for smaller models, lower for larger
+  - epochs: More for complex tasks, fewer for simple
+  - momentum: 0.9 is standard, 0.0 for pure SGD

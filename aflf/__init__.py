@@ -7,12 +7,12 @@ A research-grade federated learning implementation with:
 - Communication optimization
 - Modular and extensible design
 
-Currently implemented (Phase 2-3):
+Currently implemented (Phase 2-4):
 - Data pipeline: MNIST, CIFAR-10 with IID/Non-IID partitioning
 - Models: SimpleCNN, CNN, CNNLarge with FL-optimized interface
+- Client training: Local SGD, metrics tracking, weight management
 
-Planned (Phase 4+):
-- Client training and local optimization
+Planned (Phase 5+):
 - Server aggregation and coordination
 - Communication optimization
 - Privacy-preserving mechanisms
@@ -21,17 +21,18 @@ Planned (Phase 4+):
 __version__ = "0.1.0"
 __author__ = "Swaraj Patil"
 
-# Phase 2-3 Implementations (ready to use)
-from aflf import data, models
+# Phase 2-4 Implementations (ready to use)
+from aflf import client, data, models
 
-# Phase 4+ (placeholders for future phases)
-# from aflf import client, training, aggregation, server, communication, privacy, selection, evaluation, utils
+# Phase 5+ (placeholders for future phases)
+# from aflf import training, aggregation, server, communication, privacy, selection, evaluation, utils
 
 __all__ = [
     # Implemented
+    "client",
     "data",
     "models",
     # Planned for future phases
-    # "client", "training", "aggregation", "server",
+    # "training", "aggregation", "server",
     # "communication", "privacy", "selection", "evaluation", "utils"
 ]
