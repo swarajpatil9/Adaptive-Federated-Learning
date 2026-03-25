@@ -10,7 +10,7 @@ Main server class that coordinates federated learning:
 
 import logging
 from collections import OrderedDict
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import torch
 import torch.nn as nn
@@ -162,7 +162,10 @@ class FederatedServer:
         logger.info(f"Registered client {client_id} (dataset_size={dataset_size})")
 
     def execute_round(
-        self, round_num: int, clients: Dict[int, FederatedClient]
+        self,
+        round_num: int,
+        clients: Dict[int, FederatedClient],
+        client_train_config: Optional[Dict[str, Any]] = None,
     ) -> Dict:
         """
         Execute a complete FL round.
@@ -210,6 +213,7 @@ class FederatedServer:
             clients=clients,
             global_model=self.global_model,
             num_clients_per_round=self.num_clients_per_round,
+            client_train_config=client_train_config,
         )
 
         # Compute metrics
@@ -259,19 +263,15 @@ class FederatedServer:
                 num_selected=len(round_result.round_state.selected_clients),
             )
 
-        # Phase 6 TODO: Aggregate results and update global model
-        # For now, server orchestration is complete but aggregation is not implemented
-        if self.aggregation_strategy is not None:
-            logger.warning(
-                "Aggregation strategy provided but aggregation not implemented yet (Phase 6)"
-            )
-
         return {
             'round_num': round_num,
             'num_selected': len(round_result.round_state.selected_clients),
             'num_participating': len(round_result.results),
             'num_failed': len(round_result.failed_clients),
             'participation_rate': round_result.round_state.participation_rate,
+            'selected_clients': round_result.round_state.selected_clients.copy(),
+            'participating_clients': round_state.participating_clients.copy(),
+            'failed_clients': round_result.failed_clients.copy(),
             'results': round_result.results,  # For aggregation in Phase 6
             'metrics': metrics,
             'duration': round_result.round_state.duration,
@@ -340,6 +340,7 @@ class FederatedServer:
         num_rounds: int,
         clients: Dict[int, FederatedClient],
         show_progress: bool = True,
+        client_train_config: Optional[Dict[str, Any]] = None,
     ) -> Dict:
         """
         Run federated training for multiple rounds with progress tracking.
@@ -371,7 +372,11 @@ class FederatedServer:
 
         # Run rounds
         for round_num in range(num_rounds):
-            self.execute_round(round_num=round_num, clients=clients)
+            self.execute_round(
+                round_num=round_num,
+                clients=clients,
+                client_train_config=client_train_config,
+            )
 
         # Finish progress bar
         if self.progress_logger:

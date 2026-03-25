@@ -3,11 +3,9 @@ Federated aggregation strategies.
 
 Main API:
     AggregationStrategy - Abstract base class
+    FedAvg - Baseline weighted averaging strategy
 
-NOTE: Phase 5 only defines interfaces.
-Concrete implementations (FedAvg, etc.) will be added in Phase 6.
-
-Example (Phase 6):
+Example:
     >>> from aflf.aggregation import FedAvg
     >>>
     >>> aggregator = FedAvg()
@@ -15,8 +13,18 @@ Example (Phase 6):
 """
 
 from .aggregation_base import AggregationStrategy, FedAvgPlaceholder
+from .aggregation_utils import (
+    normalize_sample_weights,
+    validate_training_results,
+    weighted_average_state_dicts,
+)
+from .fedavg import FedAvg
 
 __all__ = [
     'AggregationStrategy',
+    'FedAvg',
     'FedAvgPlaceholder',
+    'validate_training_results',
+    'normalize_sample_weights',
+    'weighted_average_state_dicts',
 ]

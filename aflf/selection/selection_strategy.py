@@ -7,9 +7,10 @@ clients to participate in each FL round.
 
 import random
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 
-from ..server.client_manager import ClientMetadata
+if TYPE_CHECKING:
+    from ..server.client_manager import ClientMetadata
 
 
 class SelectionStrategy(ABC):
@@ -34,7 +35,7 @@ class SelectionStrategy(ABC):
         available_clients: List[int],
         num_clients: int,
         round_num: int,
-        client_metadata: Optional[Dict[int, ClientMetadata]] = None,
+        client_metadata: Optional[Dict[int, "ClientMetadata"]] = None,
     ) -> List[int]:
         """
         Select clients for a round.
@@ -86,7 +87,7 @@ class RandomSelection(SelectionStrategy):
         available_clients: List[int],
         num_clients: int,
         round_num: int,
-        client_metadata: Optional[Dict[int, ClientMetadata]] = None,
+        client_metadata: Optional[Dict[int, "ClientMetadata"]] = None,
     ) -> List[int]:
         """
         Select clients uniformly at random.
@@ -146,7 +147,7 @@ class DataAwareSelection(SelectionStrategy):
         available_clients: List[int],
         num_clients: int,
         round_num: int,
-        client_metadata: Optional[Dict[int, ClientMetadata]] = None,
+        client_metadata: Optional[Dict[int, "ClientMetadata"]] = None,
     ) -> List[int]:
         """
         Select clients with largest datasets.
@@ -223,7 +224,7 @@ class FairnessSelection(SelectionStrategy):
         available_clients: List[int],
         num_clients: int,
         round_num: int,
-        client_metadata: Optional[Dict[int, ClientMetadata]] = None,
+        client_metadata: Optional[Dict[int, "ClientMetadata"]] = None,
     ) -> List[int]:
         """
         Select clients with least participation history.

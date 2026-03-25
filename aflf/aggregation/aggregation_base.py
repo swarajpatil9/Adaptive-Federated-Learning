@@ -3,9 +3,6 @@ Abstract base class for federated aggregation strategies.
 
 This module defines the interface that all aggregation strategies must implement.
 Aggregation strategies compute the global model from client updates.
-
-NOTE: This is Phase 5 - only the interface is defined.
-Concrete implementations (FedAvg, etc.) will be added in Phase 6.
 """
 
 from abc import ABC, abstractmethod
@@ -79,9 +76,6 @@ class AggregationStrategy(ABC):
         """
         pass
 
-
-# Placeholder for Phase 6
-# This will be moved to a separate file: aggregation/fedavg.py
 class FedAvgPlaceholder(AggregationStrategy):
     """
     Placeholder for FedAvg aggregation.
