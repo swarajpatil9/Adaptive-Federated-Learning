@@ -9,8 +9,9 @@ Coordinates round execution:
 """
 
 import logging
+import inspect
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Any, Dict, List, Optional
 
 import torch.nn as nn
 
@@ -104,6 +105,7 @@ class Orchestrator:
         clients: Dict[int, FederatedClient],
         global_model: nn.Module,
         num_clients_per_round: int,
+        client_train_config: Optional[Dict[str, Any]] = None,
     ) -> RoundResult:
         """
         Execute a complete FL round.
@@ -166,6 +168,7 @@ class Orchestrator:
             selected_clients=selected_clients,
             clients=clients,
             global_model=global_model,
+            client_train_config=client_train_config,
         )
 
         # Step 4: Record participations and drops
@@ -196,6 +199,7 @@ class Orchestrator:
         selected_clients: List[int],
         clients: Dict[int, FederatedClient],
         global_model: nn.Module,
+        client_train_config: Optional[Dict[str, Any]] = None,
     ) -> tuple[List[TrainingResult], List[int], Dict[int, str]]:
         """
         Distribute model and collect results from selected clients.
@@ -229,11 +233,16 @@ class Orchestrator:
             client = clients[client_id]
 
             try:
-                # Distribute global model
-                client.set_parameters(global_weights)
+                # Distribute global model if client exposes explicit setter.
+                if hasattr(client, 'set_parameters') and callable(client.set_parameters):
+                    client.set_parameters(global_weights)
 
-                # Train client
-                result = client.train()
+                # Train client with broad API compatibility.
+                result = self._train_client(
+                    client=client,
+                    global_model=global_model,
+                    client_train_config=client_train_config,
+                )
 
                 # Validate result
                 if result.client_id != client_id:
@@ -273,3 +282,37 @@ class Orchestrator:
                 failure_reasons[client_id] = f"unexpected_error: {type(e).__name__}"
 
         return results, failed_clients, failure_reasons
+
+    def _train_client(
+        self,
+        client: FederatedClient,
+        global_model: nn.Module,
+        client_train_config: Optional[Dict[str, Any]] = None,
+    ) -> TrainingResult:
+        """
+        Train client while supporting multiple client interfaces.
+
+        Supported patterns:
+        - client.train(global_model=..., config=...)
+        - client.train(global_model, config)
+        - client.train(config=...)
+        - client.train()
+        """
+        train_fn = client.train
+
+        try:
+            signature = inspect.signature(train_fn)
+            param_names = list(signature.parameters.keys())
+        except (TypeError, ValueError):
+            param_names = []
+
+        if 'global_model' in param_names:
+            return train_fn(global_model=global_model, config=client_train_config)
+
+        if len(param_names) >= 2:
+            return train_fn(global_model, client_train_config)
+
+        if 'config' in param_names:
+            return train_fn(config=client_train_config)
+
+        return train_fn()
