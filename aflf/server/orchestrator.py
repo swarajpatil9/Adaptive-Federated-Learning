@@ -20,7 +20,7 @@ from ..client.simulation import (
     ClientFailureException,
     ClientUnavailableException,
 )
-from ..selection.selection_strategy import SelectionStrategy
+from ..selection.selection_strategy import SelectionResult, SelectionStrategy
 from .client_manager import ClientManager
 from .round_manager import RoundManager, RoundState
 from .server_utils import get_model_parameters
@@ -145,11 +145,29 @@ class Orchestrator:
 
         # Select clients
         num_to_select = min(num_clients_per_round, len(available_clients))
-        selected_clients = self.selection_strategy.select(
+        selection_result = self.selection_strategy.select_with_details(
             available_clients=available_clients,
             num_clients=num_to_select,
             round_num=round_num,
             client_metadata=client_metadata,
+        )
+        if isinstance(selection_result, SelectionResult):
+            selected_clients = selection_result.selected_client_ids
+        else:
+            # Safety fallback for custom legacy strategies.
+            selected_clients = self.selection_strategy.select(
+                available_clients=available_clients,
+                num_clients=num_to_select,
+                round_num=round_num,
+                client_metadata=client_metadata,
+            )
+            selection_result = SelectionResult(selected_client_ids=selected_clients)
+
+        self.client_manager.record_selection(
+            round_num=round_num,
+            selected_client_ids=selected_clients,
+            available_clients=available_clients,
+            scores=selection_result.client_scores,
         )
 
         logger.info(
@@ -159,7 +177,11 @@ class Orchestrator:
 
         # Step 2: Start round tracking
         round_state = self.round_manager.start_round(
-            round_num=round_num, selected_clients=selected_clients
+            round_num=round_num,
+            selected_clients=selected_clients,
+            selection_scores=selection_result.client_scores,
+            selection_reasoning=selection_result.selection_reasoning,
+            selection_policy=selection_result.policy_name,
         )
 
         # Step 3: Distribute model and collect results

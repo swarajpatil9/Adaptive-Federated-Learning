@@ -12,17 +12,13 @@ from ..aggregation.fedavg import FedAvg
 from ..client import FederatedClient
 from ..client.client_utils import set_reproducibility
 from ..data.federated_data import FederatedDataModule
-from ..evaluation.evaluator import GlobalEvaluator
+from ..evaluation.evaluator import EvaluationManager
 from ..models.factory import create_model
+from ..selection import DynamicSelectionStrategy
 from ..selection.selection_strategy import RandomSelection, SelectionStrategy
 from ..server.server import FederatedServer
 from .round_executor import RoundExecutor
-from .training_utils import (
-    FederatedTrainingConfig,
-    RoundTrainingRecord,
-    TrainingProgressTracker,
-    format_round_log,
-)
+from .training_utils import FederatedTrainingConfig
 
 
 class FederatedTrainer:
@@ -41,6 +37,8 @@ class FederatedTrainer:
         data_module: FederatedDataModule,
         config: FederatedTrainingConfig,
         selection_strategy: Optional[SelectionStrategy] = None,
+        experiment_name: str = 'federated_learning',
+        metrics_output_dir: str = 'results/metrics',
     ):
         self.model = model
         self.data_module = data_module
@@ -61,9 +59,12 @@ class FederatedTrainer:
 
         self.clients = self._build_clients()
 
-        self.evaluator = GlobalEvaluator(
+        self.evaluator = EvaluationManager(
             test_loader=self.data_module.get_test_loader(),
             device=self.config.device,
+            experiment_name=experiment_name,
+            output_dir=metrics_output_dir,
+            include_optional_metrics=True,
         )
 
         self.round_executor = RoundExecutor(
@@ -71,8 +72,6 @@ class FederatedTrainer:
             aggregation_strategy=self.aggregation_strategy,
             evaluator=self.evaluator,
         )
-
-        self.progress = TrainingProgressTracker()
 
     def _build_clients(self) -> Dict[int, FederatedClient]:
         """Create client objects and register them on the server."""
@@ -107,10 +106,8 @@ class FederatedTrainer:
         client_train_config = self.config.to_client_train_config()
 
         for round_num in range(self.config.num_rounds):
-            should_evaluate = (
-                (round_num % self.config.evaluation_frequency == 0)
-                or (round_num == self.config.num_rounds - 1)
-            )
+            # Phase 7 requires complete per-round evaluation and convergence tracking.
+            should_evaluate = True
 
             output = self.round_executor.execute(
                 round_num=round_num,
@@ -119,30 +116,35 @@ class FederatedTrainer:
                 run_evaluation=should_evaluate,
             )
 
-            server_metrics = output.server_round.get('metrics', {})
-            eval_metrics = output.evaluation
+            if output.evaluation:
+                print(self.evaluator.format_round_report(output.evaluation))
 
-            record = RoundTrainingRecord(
-                round_num=round_num,
-                global_loss=float(eval_metrics.get('global_loss', 0.0)),
-                global_accuracy=float(eval_metrics.get('global_accuracy', 0.0)),
-                avg_train_loss=float(server_metrics.get('avg_train_loss', 0.0)),
-                avg_train_accuracy=float(server_metrics.get('avg_train_accuracy', 0.0)),
-                selected_clients=int(output.server_round.get('num_selected', 0)),
-                participating_clients=int(output.server_round.get('num_participating', 0)),
-                failed_clients=int(output.server_round.get('num_failed', 0)),
-                participation_rate=float(output.server_round.get('participation_rate', 0.0)),
-                round_duration=float(output.total_duration),
-            )
-
-            self.progress.add_record(record)
-            print(format_round_log(record))
+        export_paths = self.evaluator.export_logs()
 
         return {
             'config': self.config.to_dict(),
-            'history': self.progress.records,
-            'summary': self.progress.summary(),
+            'history': [
+                self.evaluator.round_metrics_dict(metrics)
+                for metrics in self.evaluator.history.round_metrics
+            ],
+            'summary': self.evaluator.history.summary(),
+            'evaluation_logs': export_paths,
         }
+
+    @classmethod
+    def build_selection_strategy(
+        cls,
+        selection_config: Optional[Dict[str, Any]],
+        seed: int,
+    ) -> SelectionStrategy:
+        """Build selection strategy from configuration."""
+        strategy_name = str((selection_config or {}).get('strategy', 'random')).lower()
+
+        if strategy_name == 'dynamic':
+            dynamic_config = (selection_config or {}).get('dynamic', {})
+            return DynamicSelectionStrategy.from_config(dynamic_config, seed=seed)
+
+        return RandomSelection(seed=seed)
 
     @classmethod
     def from_components(
@@ -150,6 +152,9 @@ class FederatedTrainer:
         data_config: Dict[str, Any],
         model_config: Dict[str, Any],
         federated_config: FederatedTrainingConfig,
+        selection_config: Optional[Dict[str, Any]] = None,
+        experiment_name: str = 'federated_learning',
+        metrics_output_dir: str = 'results/metrics',
     ) -> 'FederatedTrainer':
         """Build trainer from config dictionaries."""
         model = create_model(
@@ -172,8 +177,16 @@ class FederatedTrainer:
             min_samples_per_client=data_config.get('min_samples_per_client', 10),
         )
 
+        selection_strategy = cls.build_selection_strategy(
+            selection_config=selection_config,
+            seed=int(federated_config.seed),
+        )
+
         return cls(
             model=model,
             data_module=data_module,
             config=federated_config,
+            selection_strategy=selection_strategy,
+            experiment_name=experiment_name,
+            metrics_output_dir=metrics_output_dir,
         )

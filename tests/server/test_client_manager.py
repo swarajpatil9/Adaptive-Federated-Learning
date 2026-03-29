@@ -210,3 +210,64 @@ class TestClientManager:
         assert 'ClientManager' in repr_str
         assert 'total_clients=2' in repr_str
         assert 'available=1' in repr_str
+
+    def test_record_selection_updates_history_and_skips(self):
+        """Test selection tracking for fairness-aware strategies."""
+        manager = ClientManager()
+        manager.register_client(client_id=0, dataset_size=600)
+        manager.register_client(client_id=1, dataset_size=550)
+
+        manager.record_selection(
+            round_num=0,
+            selected_client_ids=[0],
+            available_clients=[0, 1],
+            scores={0: 0.8, 1: 0.2},
+        )
+
+        m0 = manager.get_client_metadata(0)
+        m1 = manager.get_client_metadata(1)
+
+        assert m0.selection_count == 1
+        assert m0.selection_history == [0]
+        assert m0.skipped_rounds == 0
+        assert m0.last_score == 0.8
+
+        assert m1.selection_count == 0
+        assert m1.selection_history == []
+        assert m1.skipped_rounds == 1
+        assert m1.last_score == 0.2
+
+    def test_average_training_time_updates_from_results(self):
+        """Test running average training time update."""
+        from collections import OrderedDict
+
+        manager = ClientManager()
+        manager.register_client(client_id=0, dataset_size=600)
+
+        result1 = TrainingResult(
+            client_id=0,
+            weights=OrderedDict(),
+            num_samples=600,
+            train_loss=0.5,
+            train_accuracy=0.7,
+            val_loss=None,
+            val_accuracy=None,
+            training_time=8.0,
+        )
+        result2 = TrainingResult(
+            client_id=0,
+            weights=OrderedDict(),
+            num_samples=600,
+            train_loss=0.4,
+            train_accuracy=0.8,
+            val_loss=None,
+            val_accuracy=None,
+            training_time=12.0,
+        )
+
+        manager.update_from_result(result1, round_num=0)
+        manager.update_from_result(result2, round_num=1)
+
+        metadata = manager.get_client_metadata(0)
+        assert metadata.average_training_time == 10.0
+        assert metadata.last_performance == 0.8

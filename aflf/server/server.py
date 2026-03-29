@@ -141,7 +141,11 @@ class FederatedServer:
             )
 
     def register_client(
-        self, client_id: int, dataset_size: int, is_available: bool = True
+        self,
+        client_id: int,
+        dataset_size: int,
+        is_available: bool = True,
+        resource_score: float = 1.0,
     ) -> None:
         """
         Register a client with the server.
@@ -158,6 +162,7 @@ class FederatedServer:
             client_id=client_id,
             dataset_size=dataset_size,
             is_available=is_available,
+            resource_score=resource_score,
         )
         logger.info(f"Registered client {client_id} (dataset_size={dataset_size})")
 
@@ -270,6 +275,9 @@ class FederatedServer:
             'num_failed': len(round_result.failed_clients),
             'participation_rate': round_result.round_state.participation_rate,
             'selected_clients': round_result.round_state.selected_clients.copy(),
+            'selection_scores': round_result.round_state.selection_scores.copy(),
+            'selection_reasoning': round_result.round_state.selection_reasoning.copy(),
+            'selection_policy': round_result.round_state.selection_policy,
             'participating_clients': round_state.participating_clients.copy(),
             'failed_clients': round_result.failed_clients.copy(),
             'results': round_result.results,  # For aggregation in Phase 6

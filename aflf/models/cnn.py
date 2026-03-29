@@ -2,9 +2,9 @@
 CNN model implementations for federated learning.
 
 Provides three model scales:
-- SimpleCNN: Lightweight for MNIST (62K parameters)
-- CNN: Medium for CIFAR-10 (122K parameters)
-- CNNLarge: Larger for CIFAR-10/100 (1.2M parameters)
+- SimpleCNN: Lightweight for MNIST (~53K parameters)
+- CNN: Medium for CIFAR-10 (~141K parameters)
+- CNNLarge: Larger for CIFAR-10/100 (~1.34M parameters)
 
 All models follow the LeNet-style architecture:
 conv → pool → conv → pool → fc → fc
@@ -33,7 +33,7 @@ class SimpleCNN(BaseModel):
         FC(64*7*7 → 128) → ReLU → Dropout
         FC(128 → num_classes)
 
-    Parameters: ~62K
+    Parameters: ~53K
     Input: (batch, 1, 28, 28)
     Output: (batch, num_classes)
 
@@ -64,10 +64,12 @@ class SimpleCNN(BaseModel):
         # Pooling
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
+        # Compress spatial features before FC layers to keep communication cost low.
+        self.feature_pool = nn.AdaptiveAvgPool2d((2, 2))
+
         # Fully connected layers
-        # After 2 pooling layers: 28 → 14 → 7
-        self.fc1 = nn.Linear(64 * 7 * 7, 128)
-        self.fc2 = nn.Linear(128, num_classes)
+        self.fc1 = nn.Linear(64 * 2 * 2, 160)
+        self.fc2 = nn.Linear(160, num_classes)
 
         # Dropout
         self.dropout = nn.Dropout(dropout_rate)
@@ -92,11 +94,14 @@ class SimpleCNN(BaseModel):
         x = F.relu(x)
         x = self.pool(x)            # (batch, 64, 7, 7)
 
+        # Feature compression for parameter efficiency in FL.
+        x = self.feature_pool(x)    # (batch, 64, 2, 2)
+
         # Flatten
-        x = x.view(x.size(0), -1)   # (batch, 64*7*7)
+        x = x.view(x.size(0), -1)   # (batch, 64*2*2)
 
         # FC layers
-        x = self.fc1(x)             # (batch, 128)
+        x = self.fc1(x)             # (batch, 160)
         x = F.relu(x)
         x = self.dropout(x)
         x = self.fc2(x)             # (batch, num_classes)
@@ -115,7 +120,7 @@ class CNN(BaseModel):
         FC(64*8*8 → 128) → ReLU → Dropout
         FC(128 → num_classes)
 
-    Parameters: ~122K
+    Parameters: ~141K
     Input: (batch, 3, 32, 32)
     Output: (batch, num_classes)
 
@@ -161,9 +166,11 @@ class CNN(BaseModel):
         # Pooling
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
+        # Keep a moderate FC head size for communication-aware FL.
+        self.feature_pool = nn.AdaptiveAvgPool2d((3, 3))
+
         # Fully connected layers
-        # After 2 pooling layers: 32 → 16 → 8
-        self.fc1 = nn.Linear(64 * 8 * 8, 128)
+        self.fc1 = nn.Linear(64 * 3 * 3, 128)
         self.fc2 = nn.Linear(128, num_classes)
 
         # Dropout
@@ -197,8 +204,11 @@ class CNN(BaseModel):
         x = F.relu(x)
         x = self.pool(x)            # (batch, 64, 8, 8)
 
+        # Feature compression for communication efficiency.
+        x = self.feature_pool(x)    # (batch, 64, 3, 3)
+
         # Flatten
-        x = x.view(x.size(0), -1)   # (batch, 64*8*8)
+        x = x.view(x.size(0), -1)   # (batch, 64*3*3)
 
         # FC layers
         x = self.fc1(x)             # (batch, 128)
@@ -221,7 +231,7 @@ class CNNLarge(BaseModel):
         FC(256*4*4 → 512) → ReLU → Dropout
         FC(512 → num_classes)
 
-    Parameters: ~1.2M
+    Parameters: ~1.34M
     Input: (batch, 3, 32, 32)
     Output: (batch, num_classes)
 
@@ -256,29 +266,29 @@ class CNNLarge(BaseModel):
         self.use_batch_norm = use_batch_norm
 
         # Convolutional block 1
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, padding=1)
-        self.bn1 = nn.BatchNorm2d(64) if use_batch_norm else nn.Identity()
-        self.conv2 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
-        self.bn2 = nn.BatchNorm2d(64) if use_batch_norm else nn.Identity()
+        self.conv1 = nn.Conv2d(3, 32, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm2d(32) if use_batch_norm else nn.Identity()
+        self.conv2 = nn.Conv2d(32, 32, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm2d(32) if use_batch_norm else nn.Identity()
 
         # Convolutional block 2
-        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
-        self.bn3 = nn.BatchNorm2d(128) if use_batch_norm else nn.Identity()
-        self.conv4 = nn.Conv2d(128, 128, kernel_size=3, padding=1)
-        self.bn4 = nn.BatchNorm2d(128) if use_batch_norm else nn.Identity()
+        self.conv3 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
+        self.bn3 = nn.BatchNorm2d(64) if use_batch_norm else nn.Identity()
+        self.conv4 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
+        self.bn4 = nn.BatchNorm2d(64) if use_batch_norm else nn.Identity()
 
         # Convolutional block 3
-        self.conv5 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
-        self.bn5 = nn.BatchNorm2d(256) if use_batch_norm else nn.Identity()
-        self.conv6 = nn.Conv2d(256, 256, kernel_size=3, padding=1)
-        self.bn6 = nn.BatchNorm2d(256) if use_batch_norm else nn.Identity()
+        self.conv5 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
+        self.bn5 = nn.BatchNorm2d(128) if use_batch_norm else nn.Identity()
+        self.conv6 = nn.Conv2d(128, 128, kernel_size=3, padding=1)
+        self.bn6 = nn.BatchNorm2d(128) if use_batch_norm else nn.Identity()
 
         # Pooling
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
         # Fully connected layers
         # After 3 pooling layers: 32 → 16 → 8 → 4
-        self.fc1 = nn.Linear(256 * 4 * 4, 512)
+        self.fc1 = nn.Linear(128 * 4 * 4, 512)
         self.fc2 = nn.Linear(512, num_classes)
 
         # Dropout
@@ -295,34 +305,34 @@ class CNNLarge(BaseModel):
             Logits (batch, num_classes)
         """
         # Conv block 1
-        x = self.conv1(x)           # (batch, 64, 32, 32)
+        x = self.conv1(x)           # (batch, 32, 32, 32)
         x = self.bn1(x)
         x = F.relu(x)
-        x = self.conv2(x)           # (batch, 64, 32, 32)
+        x = self.conv2(x)           # (batch, 32, 32, 32)
         x = self.bn2(x)
         x = F.relu(x)
-        x = self.pool(x)            # (batch, 64, 16, 16)
+        x = self.pool(x)            # (batch, 32, 16, 16)
 
         # Conv block 2
-        x = self.conv3(x)           # (batch, 128, 16, 16)
+        x = self.conv3(x)           # (batch, 64, 16, 16)
         x = self.bn3(x)
         x = F.relu(x)
-        x = self.conv4(x)           # (batch, 128, 16, 16)
+        x = self.conv4(x)           # (batch, 64, 16, 16)
         x = self.bn4(x)
         x = F.relu(x)
-        x = self.pool(x)            # (batch, 128, 8, 8)
+        x = self.pool(x)            # (batch, 64, 8, 8)
 
         # Conv block 3
-        x = self.conv5(x)           # (batch, 256, 8, 8)
+        x = self.conv5(x)           # (batch, 128, 8, 8)
         x = self.bn5(x)
         x = F.relu(x)
-        x = self.conv6(x)           # (batch, 256, 8, 8)
+        x = self.conv6(x)           # (batch, 128, 8, 8)
         x = self.bn6(x)
         x = F.relu(x)
-        x = self.pool(x)            # (batch, 256, 4, 4)
+        x = self.pool(x)            # (batch, 128, 4, 4)
 
         # Flatten
-        x = x.view(x.size(0), -1)   # (batch, 256*4*4)
+        x = x.view(x.size(0), -1)   # (batch, 128*4*4)
 
         # FC layers
         x = self.fc1(x)             # (batch, 512)
