@@ -100,9 +100,12 @@ def main():
         data_config=config['data'],
         model_config=config['model'],
         federated_config=federated_config,
+        selection_config=config.get('selection'),
+        experiment_name=config_path.stem,
+        metrics_output_dir=str(Path(args.output_dir) / 'metrics'),
     )
 
-    print("\nStarting Phase 6 federated training loop...")
+    print("\nStarting Phase 7 federated training loop...")
     results = trainer.fit()
 
     summary = results['summary']
@@ -113,6 +116,10 @@ def main():
     print(f"Total time: {summary.get('total_training_time', 0.0):.2f}s")
     print(f"Final global accuracy: {summary.get('final_global_accuracy', 0.0):.4f}")
     print(f"Final global loss: {summary.get('final_global_loss', 0.0):.4f}")
+    if 'evaluation_logs' in results:
+        print("Evaluation logs:")
+        for name, path in results['evaluation_logs'].items():
+            print(f"  - {name}: {path}")
     print("=" * 80)
 
 

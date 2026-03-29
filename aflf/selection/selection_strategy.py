@@ -7,13 +7,59 @@ clients to participate in each FL round.
 
 import random
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Dict, List, Optional
 
 if TYPE_CHECKING:
     from ..server.client_manager import ClientMetadata
 
 
-class SelectionStrategy(ABC):
+@dataclass
+class SelectionResult:
+    """Structured selection output for logging and analysis."""
+
+    selected_client_ids: List[int]
+    client_scores: Dict[int, float] = field(default_factory=dict)
+    selection_reasoning: Dict[int, str] = field(default_factory=dict)
+    policy_name: str = "unknown"
+
+
+class BaseSelectionStrategy(ABC):
+    """Base interface for all client selection strategies."""
+
+    @abstractmethod
+    def select(
+        self,
+        available_clients: List[int],
+        num_clients: int,
+        round_num: int,
+        client_metadata: Optional[Dict[int, "ClientMetadata"]] = None,
+    ) -> List[int]:
+        """Return selected client IDs for the round."""
+
+    def select_with_details(
+        self,
+        available_clients: List[int],
+        num_clients: int,
+        round_num: int,
+        client_metadata: Optional[Dict[int, "ClientMetadata"]] = None,
+    ) -> SelectionResult:
+        """Default detailed output wrapper around select()."""
+        selected = self.select(
+            available_clients=available_clients,
+            num_clients=num_clients,
+            round_num=round_num,
+            client_metadata=client_metadata,
+        )
+        return SelectionResult(
+            selected_client_ids=selected,
+            client_scores={},
+            selection_reasoning={cid: "Selected by strategy" for cid in selected},
+            policy_name=self.__class__.__name__,
+        )
+
+
+class SelectionStrategy(BaseSelectionStrategy):
     """
     Abstract base class for client selection strategies.
 
@@ -52,7 +98,7 @@ class SelectionStrategy(ABC):
         Raises:
             ValueError: If num_clients > len(available_clients)
         """
-        pass
+        raise NotImplementedError
 
 
 class RandomSelection(SelectionStrategy):

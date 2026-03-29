@@ -33,3 +33,23 @@ training:
 
 evaluation:
   frequency: 1
+
+selection:
+  strategy: dynamic  # random | dynamic
+  dynamic:
+    weights:
+      accuracy: 0.35
+      data_size: 0.20
+      reliability: 0.20
+      latency: 0.15
+      resource: 0.05
+      participation_boost: 0.05
+    policy:
+      name: hybrid
+      mode: hybrid  # top_k | probabilistic | hybrid
+      exploration_rate: 0.20
+      min_exploration_clients: 1
+      fairness_boost_weight: 0.15
+      max_skip_rounds: 5
+      enforce_max_skip: true
+      probabilistic_temperature: 1.0

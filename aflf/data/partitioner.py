@@ -183,48 +183,35 @@ class DataPartitioner:
         """
         shards_per_client = self.strategy_kwargs.get('shards_per_client', 2)
 
-        # Get unique classes
-        unique_labels = torch.unique(self.targets).numpy()
-        num_classes = len(unique_labels)
-
-        # Ensure reasonable configuration
-        if shards_per_client > num_classes:
-            raise ValueError(
-                f"shards_per_client ({shards_per_client}) cannot exceed "
-                f"num_classes ({num_classes})"
-            )
-
-        # Total number of shards
+        # Total number of shards in FedAvg-style partitioning.
         num_shards = self.num_clients * shards_per_client
 
-        # Divide classes among shards (as evenly as possible)
-        # Each shard gets a contiguous set of classes
-        classes_per_shard = max(1, num_classes // num_shards)
+        if num_shards <= 0:
+            return {client_id: [] for client_id in range(self.num_clients)}
 
-        shards = [[] for _ in range(num_shards)]
+        # Sort sample indices by label then split into equal-size shards.
+        sorted_indices = torch.argsort(self.targets).tolist()
+        shard_size = max(1, len(sorted_indices) // num_shards)
 
-        # Assign classes to shards
-        for shard_id in range(num_shards):
-            # Determine which classes this shard should contain
-            start_class_idx = shard_id * classes_per_shard
-            if shard_id == num_shards - 1:
-                # Last shard gets remaining classes
-                end_class_idx = num_classes
-            else:
-                end_class_idx = start_class_idx + classes_per_shard
+        shards: List[List[int]] = []
+        cursor = 0
+        for _ in range(num_shards):
+            next_cursor = min(len(sorted_indices), cursor + shard_size)
+            shards.append(sorted_indices[cursor:next_cursor])
+            cursor = next_cursor
 
-            # Collect all samples from these classes
-            for class_idx in range(start_class_idx, end_class_idx):
-                class_label = unique_labels[class_idx]
-                class_mask = self.targets == class_label
-                class_indices = torch.where(class_mask)[0].numpy().tolist()
-                shards[shard_id].extend(class_indices)
+        # Distribute any remaining samples across shards to keep full coverage.
+        if cursor < len(sorted_indices):
+            remainder = sorted_indices[cursor:]
+            for i, sample_idx in enumerate(remainder):
+                shards[i % num_shards].append(sample_idx)
 
-            # Shuffle samples within each shard
-            self.rng.shuffle(shards[shard_id])
+        # Shuffle samples inside each shard for mild stochasticity.
+        for shard in shards:
+            self.rng.shuffle(shard)
 
         # Now randomly assign shards to clients
-        # Each client gets shards_per_client consecutive shards
+        # Each client gets shards_per_client random shards.
         shard_assignment = self.rng.permutation(num_shards).tolist()
 
         client_indices = {}

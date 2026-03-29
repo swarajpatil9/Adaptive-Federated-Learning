@@ -15,6 +15,10 @@ Currently implemented (Phase 2-6):
 - FedAvg aggregation baseline
 - Federated training loop with global evaluation
 
+Phase 7 additions:
+- Centralized evaluation manager and convergence tracking
+- Communication and timing-aware metrics infrastructure
+
 Planned (Phase 5+):
 - Server aggregation and coordination
 - Communication optimization
@@ -33,4 +37,5 @@ __all__ = [
     "server",
     "selection",
     "evaluation",
+    "metrics",
 ]

@@ -11,7 +11,7 @@ from typing import Any, Dict
 
 from ..aggregation.aggregation_base import AggregationStrategy
 from ..client.client import FederatedClient
-from ..evaluation.evaluator import GlobalEvaluator
+from ..evaluation.evaluator import EvaluationManager
 from ..server.server import FederatedServer
 
 
@@ -21,7 +21,7 @@ class RoundExecutionOutput:
 
     round_num: int
     server_round: Dict[str, Any]
-    evaluation: Dict[str, float]
+    evaluation: Dict[str, Any]
     total_duration: float
 
 
@@ -40,7 +40,7 @@ class RoundExecutor:
         self,
         server: FederatedServer,
         aggregation_strategy: AggregationStrategy,
-        evaluator: GlobalEvaluator,
+        evaluator: EvaluationManager,
     ):
         self.server = server
         self.aggregation_strategy = aggregation_strategy
@@ -72,9 +72,19 @@ class RoundExecutor:
             )
             self.server.set_global_parameters(new_global_weights)
 
-        evaluation_metrics: Dict[str, float] = {}
+        evaluation_metrics: Dict[str, Any] = {}
         if run_evaluation:
-            evaluation_metrics = self.evaluator.evaluate(self.server.get_global_model())
+            round_metrics = self.evaluator.evaluate_round(
+                round_num=round_num,
+                model=self.server.get_global_model(),
+                server_round=server_round,
+                round_time=time.time() - start_time,
+                criterion_name=(client_train_config or {}).get(
+                    'criterion',
+                    'cross_entropy',
+                ),
+            )
+            evaluation_metrics = self.evaluator.round_metrics_dict(round_metrics)
 
         total_duration = time.time() - start_time
 

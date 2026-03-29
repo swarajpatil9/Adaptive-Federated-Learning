@@ -141,6 +141,7 @@ class FederatedClient:
         client_id: int,
         train_loader: DataLoader,
         val_loader: Optional[DataLoader] = None,
+        epochs: Optional[int] = None,
         device: Optional[str] = None,
         verbose: bool = False,
     ):
@@ -151,12 +152,14 @@ class FederatedClient:
             client_id: Unique identifier for this client
             train_loader: DataLoader for training data
             val_loader: Optional DataLoader for validation
+            epochs: Optional default local epochs (backward-compatible)
             device: Training device ('cpu', 'cuda', 'mps')
             verbose: If True, print training progress
         """
         self.client_id = client_id
         self.train_loader = train_loader
         self.val_loader = val_loader
+        self.default_epochs = epochs
         self.verbose = verbose
 
         # Create local trainer
@@ -205,7 +208,7 @@ class FederatedClient:
             config = {}
 
         # Extract config (with defaults)
-        epochs = config.get('epochs', 1)
+        epochs = config.get('epochs', self.default_epochs if self.default_epochs is not None else 1)
         lr = config.get('lr', 0.01)
         optimizer_name = config.get('optimizer', 'sgd')
         momentum = config.get('momentum', 0.0)
