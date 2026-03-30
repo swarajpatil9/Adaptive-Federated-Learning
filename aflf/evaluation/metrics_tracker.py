@@ -32,6 +32,7 @@ class MetricsTracker:
         """Extract client-level metrics from client training result objects."""
         metrics: List[ClientMetrics] = []
         for result in results:
+            privacy_metadata = getattr(result, 'privacy_metadata', {}) or {}
             metrics.append(
                 ClientMetrics(
                     round_num=int(round_num),
@@ -42,6 +43,13 @@ class MetricsTracker:
                     training_time=float(getattr(result, 'training_time', 0.0)),
                     val_accuracy=getattr(result, 'val_accuracy', None),
                     val_loss=getattr(result, 'val_loss', None),
+                    privacy_enabled=bool(getattr(result, 'privacy_enabled', False)),
+                    privacy_overhead_time=float(
+                        getattr(result, 'privacy_overhead_time', 0.0)
+                    ),
+                    clip_applied=bool(privacy_metadata.get('clip_applied', False)),
+                    clip_factor=float(privacy_metadata.get('clip_factor', 1.0)),
+                    noise_scale=float(privacy_metadata.get('noise_std', 0.0)),
                 )
             )
         return metrics
@@ -62,6 +70,10 @@ class MetricsTracker:
 
         client_accuracies = [item.train_accuracy for item in client_metrics]
         client_times = [item.training_time for item in client_metrics]
+        privacy_enabled_flags = [item.privacy_enabled for item in client_metrics]
+        privacy_overheads = [item.privacy_overhead_time for item in client_metrics]
+        privacy_noise_scales = [item.noise_scale for item in client_metrics]
+        privacy_clip_flags = [item.clip_applied for item in client_metrics]
 
         model_size_bytes = estimate_model_size_bytes(
             model=model,
@@ -76,11 +88,23 @@ class MetricsTracker:
 
         timing_summary = summarize_client_training_time(client_times)
 
+        privacy_enabled_fraction = safe_mean([1.0 if flag else 0.0 for flag in privacy_enabled_flags])
+        privacy_clip_applied_fraction = safe_mean(
+            [1.0 if flag else 0.0 for flag in privacy_clip_flags]
+        )
+        privacy_overhead_time_mean = safe_mean(privacy_overheads)
+        privacy_overhead_time_total = sum(privacy_overheads)
+        privacy_noise_scale_mean = safe_mean(privacy_noise_scales)
+
+        global_accuracy = float(global_metrics.get('global_accuracy', 0.0))
+        client_accuracy_mean = safe_mean(client_accuracies)
+        privacy_accuracy_drop_estimate = max(0.0, client_accuracy_mean - global_accuracy)
+
         return RoundMetrics(
             round_num=int(round_num),
-            global_accuracy=float(global_metrics.get('global_accuracy', 0.0)),
+            global_accuracy=global_accuracy,
             global_loss=float(global_metrics.get('global_loss', 0.0)),
-            client_accuracy_mean=safe_mean(client_accuracies),
+            client_accuracy_mean=client_accuracy_mean,
             client_accuracy_variance=safe_variance(client_accuracies),
             round_time=float(round_time),
             total_training_time=float(total_training_time),
@@ -106,6 +130,12 @@ class MetricsTracker:
             rounds_to_convergence_estimate=float(
                 convergence_metrics.get('rounds_to_convergence_estimate', float('inf'))
             ),
+            privacy_enabled_fraction=float(privacy_enabled_fraction),
+            privacy_overhead_time_mean=float(privacy_overhead_time_mean),
+            privacy_overhead_time_total=float(privacy_overhead_time_total),
+            privacy_noise_scale_mean=float(privacy_noise_scale_mean),
+            privacy_clip_applied_fraction=float(privacy_clip_applied_fraction),
+            privacy_accuracy_drop_estimate=float(privacy_accuracy_drop_estimate),
             precision=global_metrics.get('precision'),
             recall=global_metrics.get('recall'),
             f1_score=global_metrics.get('f1_score'),

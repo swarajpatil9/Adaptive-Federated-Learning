@@ -19,11 +19,17 @@ from .aggregation_utils import (
     weighted_average_state_dicts,
 )
 from .fedavg import FedAvg
+from .secure_aggregation import (
+    SecureAggregationPreparer,
+    SecureAggregationPreparationResult,
+)
 
 __all__ = [
     'AggregationStrategy',
     'FedAvg',
     'FedAvgPlaceholder',
+    'SecureAggregationPreparer',
+    'SecureAggregationPreparationResult',
     'validate_training_results',
     'normalize_sample_weights',
     'weighted_average_state_dicts',

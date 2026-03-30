@@ -32,17 +32,9 @@ class ClientMetadata:
     is_available: bool = True
     last_accuracy: Optional[float] = None
     last_loss: Optional[float] = None
-    last_performance: Optional[float] = None
-    last_score: Optional[float] = None
     participation_count: int = 0
-    selection_count: int = 0
     failure_count: int = 0
     total_training_time: float = 0.0
-    average_training_time: float = 0.0
-    selection_history: List[int] = field(default_factory=list)
-    skipped_rounds: int = 0
-    resource_score: float = 1.0
-    last_selected_round: Optional[int] = None
     last_round_participated: Optional[int] = None
 
 
@@ -70,11 +62,7 @@ class ClientManager:
         self._clients: Dict[int, ClientMetadata] = {}
 
     def register_client(
-        self,
-        client_id: int,
-        dataset_size: int,
-        is_available: bool = True,
-        resource_score: float = 1.0,
+        self, client_id: int, dataset_size: int, is_available: bool = True
     ) -> None:
         """
         Register a new client.
@@ -94,7 +82,6 @@ class ClientManager:
             client_id=client_id,
             dataset_size=dataset_size,
             is_available=is_available,
-            resource_score=resource_score,
         )
 
     def update_from_result(self, result: TrainingResult, round_num: int) -> None:
@@ -115,44 +102,9 @@ class ClientManager:
         metadata = self._clients[client_id]
         metadata.last_accuracy = result.train_accuracy
         metadata.last_loss = result.train_loss
-        metadata.last_performance = result.train_accuracy
         metadata.participation_count += 1
         metadata.total_training_time += result.training_time
-        metadata.average_training_time = (
-            metadata.total_training_time / metadata.participation_count
-        )
         metadata.last_round_participated = round_num
-
-    def record_selection(
-        self,
-        round_num: int,
-        selected_client_ids: List[int],
-        available_clients: Optional[List[int]] = None,
-        scores: Optional[Dict[int, float]] = None,
-    ) -> None:
-        """Record per-round selection decisions for fairness-aware tracking."""
-        available_set = set(available_clients) if available_clients is not None else set(self.get_available_clients())
-        selected_set = set(selected_client_ids)
-
-        for client_id in available_set:
-            metadata = self._clients[client_id]
-
-            if client_id in selected_set:
-                metadata.selection_count += 1
-                metadata.selection_history.append(round_num)
-                metadata.last_selected_round = round_num
-                metadata.skipped_rounds = 0
-            else:
-                metadata.skipped_rounds += 1
-
-            if scores is not None and client_id in scores:
-                metadata.last_score = scores[client_id]
-
-    def update_client_score(self, client_id: int, score: float) -> None:
-        """Update cached score for one client."""
-        if client_id not in self._clients:
-            raise ValueError(f"Client {client_id} not registered")
-        self._clients[client_id].last_score = score
 
     def record_failure(self, client_id: int) -> None:
         """

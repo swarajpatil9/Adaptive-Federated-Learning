@@ -19,6 +19,11 @@ Phase 7 additions:
 - Centralized evaluation manager and convergence tracking
 - Communication and timing-aware metrics infrastructure
 
+Phase 9 additions:
+- Client-side differential privacy (clipping + Gaussian noise)
+- Privacy-overhead and tradeoff tracking metrics
+- Secure aggregation preparation layer
+
 Planned (Phase 5+):
 - Server aggregation and coordination
 - Communication optimization
@@ -38,4 +43,5 @@ __all__ = [
     "selection",
     "evaluation",
     "metrics",
+    "privacy",
 ]

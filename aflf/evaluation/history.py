@@ -20,6 +20,11 @@ class ClientMetrics:
     training_time: float
     val_accuracy: Optional[float] = None
     val_loss: Optional[float] = None
+    privacy_enabled: bool = False
+    privacy_overhead_time: float = 0.0
+    clip_applied: bool = False
+    clip_factor: float = 1.0
+    noise_scale: float = 0.0
 
 
 @dataclass
@@ -45,6 +50,12 @@ class RoundMetrics:
     accuracy_improvement_rate: float
     loss_decrease_rate: float
     rounds_to_convergence_estimate: float
+    privacy_enabled_fraction: float = 0.0
+    privacy_overhead_time_mean: float = 0.0
+    privacy_overhead_time_total: float = 0.0
+    privacy_noise_scale_mean: float = 0.0
+    privacy_clip_applied_fraction: float = 0.0
+    privacy_accuracy_drop_estimate: float = 0.0
     precision: Optional[float] = None
     recall: Optional[float] = None
     f1_score: Optional[float] = None

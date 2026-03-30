@@ -27,9 +27,6 @@ class RoundState:
 
     round_num: int
     selected_clients: List[int] = field(default_factory=list)
-    selection_scores: Dict[int, float] = field(default_factory=dict)
-    selection_reasoning: Dict[int, str] = field(default_factory=dict)
-    selection_policy: Optional[str] = None
     participating_clients: List[int] = field(default_factory=list)
     dropped_clients: List[int] = field(default_factory=list)
     metrics: Dict = field(default_factory=dict)
@@ -78,9 +75,6 @@ class RoundState:
         return {
             'round_num': self.round_num,
             'num_selected': len(self.selected_clients),
-            'selection_policy': self.selection_policy,
-            'selection_scores': self.selection_scores,
-            'selection_reasoning': self.selection_reasoning,
             'num_participating': len(self.participating_clients),
             'num_dropped': len(self.dropped_clients),
             'participation_rate': self.participation_rate,
@@ -128,14 +122,7 @@ class RoundManager:
         self._history: List[RoundState] = []
         self._current_round: Optional[RoundState] = None
 
-    def start_round(
-        self,
-        round_num: int,
-        selected_clients: List[int],
-        selection_scores: Optional[Dict[int, float]] = None,
-        selection_reasoning: Optional[Dict[int, str]] = None,
-        selection_policy: Optional[str] = None,
-    ) -> RoundState:
+    def start_round(self, round_num: int, selected_clients: List[int]) -> RoundState:
         """
         Start a new round.
 
@@ -155,11 +142,7 @@ class RoundManager:
             )
 
         self._current_round = RoundState(
-            round_num=round_num,
-            selected_clients=selected_clients.copy(),
-            selection_scores=(selection_scores or {}).copy(),
-            selection_reasoning=(selection_reasoning or {}).copy(),
-            selection_policy=selection_policy,
+            round_num=round_num, selected_clients=selected_clients.copy()
         )
         return self._current_round
 

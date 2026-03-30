@@ -105,7 +105,7 @@ def main():
         metrics_output_dir=str(Path(args.output_dir) / 'metrics'),
     )
 
-    print("\nStarting Phase 7 federated training loop...")
+    print("\nStarting Phase 9 federated training loop...")
     results = trainer.fit()
 
     summary = results['summary']
