@@ -34,8 +34,14 @@ training:
 evaluation:
   frequency: 1
 
+privacy:
+  privacy_enabled: false
+  clip_norm: 1.0
+  noise_multiplier: 0.05
+  secure_aggregation_enabled: false
+
 selection:
-  strategy: dynamic  # random | dynamic
+  strategy: dynamic # random | dynamic
   dynamic:
     weights:
       accuracy: 0.35
@@ -46,7 +52,7 @@ selection:
       participation_boost: 0.05
     policy:
       name: hybrid
-      mode: hybrid  # top_k | probabilistic | hybrid
+      mode: hybrid # top_k | probabilistic | hybrid
       exploration_rate: 0.20
       min_exploration_clients: 1
       fairness_boost_weight: 0.15

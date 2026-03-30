@@ -89,6 +89,13 @@ def compute_weighted_average_metrics(
         avg_val_accuracy = None
 
     avg_training_time = sum(r.training_time for r in results) / len(results)
+    avg_privacy_overhead_time = sum(
+        float(getattr(r, 'privacy_overhead_time', 0.0)) for r in results
+    ) / len(results)
+    privacy_enabled_fraction = sum(
+        1.0 if bool(getattr(r, 'privacy_enabled', False)) else 0.0
+        for r in results
+    ) / len(results)
 
     return {
         'num_clients': len(results),
@@ -98,6 +105,8 @@ def compute_weighted_average_metrics(
         'avg_val_loss': avg_val_loss,
         'avg_val_accuracy': avg_val_accuracy,
         'avg_training_time': avg_training_time,
+        'avg_privacy_overhead_time': avg_privacy_overhead_time,
+        'privacy_enabled_fraction': privacy_enabled_fraction,
     }
 
 

@@ -24,6 +24,9 @@ class FederatedTrainingConfig:
     momentum: float = 0.0
     weight_decay: float = 0.0
     criterion: str = 'cross_entropy'
+    privacy_enabled: bool = False
+    clip_norm: float = 1.0
+    noise_multiplier: float = 0.05
     device: str = 'cpu'
     seed: int = 42
     verbose: bool = False
@@ -37,6 +40,11 @@ class FederatedTrainingConfig:
             'momentum': self.momentum,
             'weight_decay': self.weight_decay,
             'criterion': self.criterion,
+            'privacy': {
+                'privacy_enabled': self.privacy_enabled,
+                'clip_norm': self.clip_norm,
+                'noise_multiplier': self.noise_multiplier,
+            },
         }
 
     def to_dict(self) -> Dict[str, Any]:
@@ -129,6 +137,7 @@ def build_federated_config(config: Dict[str, Any]) -> FederatedTrainingConfig:
     federated = config.get('federated', {})
     training = config.get('training', config)
     evaluation = config.get('evaluation', {})
+    privacy = config.get('privacy', {})
 
     return FederatedTrainingConfig(
         num_rounds=int(federated.get('num_rounds', 10)),
@@ -141,6 +150,9 @@ def build_federated_config(config: Dict[str, Any]) -> FederatedTrainingConfig:
         momentum=float(training.get('momentum', 0.0)),
         weight_decay=float(training.get('weight_decay', 0.0)),
         criterion=str(training.get('criterion', 'cross_entropy')),
+        privacy_enabled=bool(privacy.get('privacy_enabled', False)),
+        clip_norm=float(privacy.get('clip_norm', 1.0)),
+        noise_multiplier=float(privacy.get('noise_multiplier', 0.05)),
         device=str(training.get('device', federated.get('device', 'cpu'))),
         seed=int(config.get('seed', 42)),
         verbose=bool(training.get('verbose', False)),

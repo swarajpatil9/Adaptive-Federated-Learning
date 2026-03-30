@@ -19,6 +19,8 @@ from torch.utils.data import DataLoader
 
 from .client_utils import get_model_weights, set_model_weights
 from .trainer import LocalTrainer
+from ..privacy.dp_mechanism import PrivacyEngine
+from ..privacy.privacy_config import PrivacyConfig
 
 
 @dataclass
@@ -60,6 +62,9 @@ class TrainingResult:
     val_loss: Optional[float]
     val_accuracy: Optional[float]
     training_time: float
+    privacy_enabled: bool = False
+    privacy_overhead_time: float = 0.0
+    privacy_metadata: Optional[Dict] = None
 
     def to_dict(self) -> Dict:
         """
@@ -79,6 +84,9 @@ class TrainingResult:
             'val_loss': self.val_loss,
             'val_accuracy': self.val_accuracy,
             'training_time': self.training_time,
+            'privacy_enabled': self.privacy_enabled,
+            'privacy_overhead_time': self.privacy_overhead_time,
+            'privacy_metadata': self.privacy_metadata or {},
         }
 
     def __repr__(self) -> str:
@@ -223,6 +231,7 @@ class FederatedClient:
         # Clone global model for local training
         # This ensures we don't modify the global model
         local_model = self._clone_model(global_model)
+        initial_weights = get_model_weights(local_model)
 
         # Track training time
         start_time = time.time()
@@ -245,16 +254,35 @@ class FederatedClient:
         # Extract updated weights
         updated_weights = get_model_weights(local_model)
 
+        # Apply optional privacy protection at the client update boundary.
+        privacy_config = PrivacyConfig.from_dict(config.get('privacy', config))
+        privacy_engine = PrivacyEngine(privacy_config)
+        privacy_result = privacy_engine.protect_weights(
+            global_weights=initial_weights,
+            local_weights=updated_weights,
+        )
+        merged_privacy_metadata = {
+            **privacy_result.metadata,
+            'secure_aggregation': {
+                'secure_aggregation_enabled': privacy_config.secure_aggregation_enabled,
+                'masking_applied': False,
+                'protocol': 'preparation_only',
+            },
+        }
+
         # Create result
         result = TrainingResult(
             client_id=self.client_id,
-            weights=updated_weights,
+            weights=privacy_result.protected_weights,
             num_samples=train_metrics['num_samples'],
             train_loss=train_metrics['train_loss'],
             train_accuracy=train_metrics['train_accuracy'],
             val_loss=train_metrics['val_loss'],
             val_accuracy=train_metrics['val_accuracy'],
             training_time=training_time,
+            privacy_enabled=bool(privacy_result.metadata.get('privacy_enabled', False)),
+            privacy_overhead_time=float(privacy_result.processing_time),
+            privacy_metadata=merged_privacy_metadata,
         )
 
         if self.verbose:

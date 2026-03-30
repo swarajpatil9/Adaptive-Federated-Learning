@@ -29,6 +29,9 @@ def format_megabytes(num_bytes: int) -> float:
 
 def format_round_summary(round_metrics: dict) -> str:
     """Generate a compact single-line round summary for console logging."""
+    privacy_enabled_fraction = round_metrics.get('privacy_enabled_fraction', 0.0)
+    privacy_noise = round_metrics.get('privacy_noise_scale_mean', 0.0)
+    privacy_overhead = round_metrics.get('privacy_overhead_time_mean', 0.0)
     return (
         f"[Round {round_metrics.get('round_num', 0):03d}] "
         f"global_acc={round_metrics.get('global_accuracy', 0.0):.4f} "
@@ -36,5 +39,8 @@ def format_round_summary(round_metrics: dict) -> str:
         f"clients={round_metrics.get('num_participating_clients', 0)}/"
         f"{round_metrics.get('num_selected_clients', 0)} "
         f"round_time={round_metrics.get('round_time', 0.0):.2f}s "
-        f"comm={round_metrics.get('communication_cost_mb', 0.0):.2f}MB"
+        f"comm={round_metrics.get('communication_cost_mb', 0.0):.2f}MB "
+        f"privacy={privacy_enabled_fraction:.2f} "
+        f"noise={privacy_noise:.4f} "
+        f"privacy_overhead={privacy_overhead:.4f}s"
     )
