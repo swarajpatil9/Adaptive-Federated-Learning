@@ -14,6 +14,7 @@ from ..client.client_utils import set_reproducibility
 from ..data.federated_data import FederatedDataModule
 from ..evaluation.evaluator import EvaluationManager
 from ..models.factory import create_model
+from ..optimization import AdaptiveLRController
 from ..selection import DynamicSelectionStrategy
 from ..selection.selection_strategy import RandomSelection, SelectionStrategy
 from ..server.server import FederatedServer
@@ -73,6 +74,13 @@ class FederatedTrainer:
             evaluator=self.evaluator,
         )
 
+        self.adaptive_lr_controller = AdaptiveLRController.from_dict(
+            optimization_config=self.config.optimization,
+            fallback_learning_rate=self.config.learning_rate,
+        )
+        if self.adaptive_lr_controller.is_enabled():
+            self.config.learning_rate = self.adaptive_lr_controller.current_lr
+
     def _build_clients(self) -> Dict[int, FederatedClient]:
         """Create client objects and register them on the server."""
         clients: Dict[int, FederatedClient] = {}
@@ -103,21 +111,50 @@ class FederatedTrainer:
 
     def fit(self) -> Dict[str, Any]:
         """Run full federated training process for configured rounds."""
-        client_train_config = self.config.to_client_train_config()
-
         for round_num in range(self.config.num_rounds):
             # Phase 7 requires complete per-round evaluation and convergence tracking.
             should_evaluate = True
+
+            optimization_metrics: Dict[str, Any] = {
+                'learning_rate': self.config.learning_rate,
+                'lr_change_ratio': 1.0,
+                'lr_adjustment_reason': 'static',
+            }
+
+            if self.adaptive_lr_controller.is_enabled():
+                optimization_metrics = self.adaptive_lr_controller.get_round_context(
+                    round_num=round_num
+                )
+                self.config.learning_rate = float(optimization_metrics['learning_rate'])
+
+            client_train_config = self.config.to_client_train_config()
 
             output = self.round_executor.execute(
                 round_num=round_num,
                 clients=self.clients,
                 client_train_config=client_train_config,
                 run_evaluation=should_evaluate,
+                optimization_metrics=optimization_metrics,
             )
 
             if output.evaluation:
                 print(self.evaluator.format_round_report(output.evaluation))
+
+                if self.adaptive_lr_controller.is_enabled():
+                    lr_update = self.adaptive_lr_controller.update_after_round(
+                        round_num=round_num,
+                        global_loss=float(output.evaluation.get('global_loss', 0.0)),
+                        global_accuracy=float(
+                            output.evaluation.get('global_accuracy', 0.0)
+                        ),
+                    )
+                    self.config.learning_rate = float(lr_update['new_lr'])
+                    print(
+                        f"[AdaptiveLR] round={round_num:03d} "
+                        f"prev={lr_update['previous_lr']:.6f} "
+                        f"new={lr_update['new_lr']:.6f} "
+                        f"reason={lr_update['reason']}"
+                    )
 
         export_paths = self.evaluator.export_logs()
 
@@ -129,6 +166,7 @@ class FederatedTrainer:
             ],
             'summary': self.evaluator.history.summary(),
             'evaluation_logs': export_paths,
+            'lr_history': self.adaptive_lr_controller.history,
         }
 
     @classmethod

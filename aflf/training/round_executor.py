@@ -52,6 +52,7 @@ class RoundExecutor:
         clients: Dict[int, FederatedClient],
         client_train_config: Dict[str, Any],
         run_evaluation: bool,
+        optimization_metrics: Dict[str, Any] = None,
     ) -> RoundExecutionOutput:
         """Run one complete round with optional evaluation."""
         start_time = time.time()
@@ -83,6 +84,7 @@ class RoundExecutor:
                     'criterion',
                     'cross_entropy',
                 ),
+                optimization_metrics=optimization_metrics,
             )
             evaluation_metrics = self.evaluator.round_metrics_dict(round_metrics)
 

@@ -50,6 +50,9 @@ class RoundMetrics:
     accuracy_improvement_rate: float
     loss_decrease_rate: float
     rounds_to_convergence_estimate: float
+    learning_rate: float = 0.0
+    lr_change_ratio: float = 1.0
+    lr_adjustment_reason: str = 'static'
     privacy_enabled_fraction: float = 0.0
     privacy_overhead_time_mean: float = 0.0
     privacy_overhead_time_total: float = 0.0

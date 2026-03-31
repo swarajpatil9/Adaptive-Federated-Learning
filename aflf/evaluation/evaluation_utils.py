@@ -32,10 +32,14 @@ def format_round_summary(round_metrics: dict) -> str:
     privacy_enabled_fraction = round_metrics.get('privacy_enabled_fraction', 0.0)
     privacy_noise = round_metrics.get('privacy_noise_scale_mean', 0.0)
     privacy_overhead = round_metrics.get('privacy_overhead_time_mean', 0.0)
+    learning_rate = round_metrics.get('learning_rate', 0.0)
+    lr_reason = round_metrics.get('lr_adjustment_reason', 'static')
     return (
         f"[Round {round_metrics.get('round_num', 0):03d}] "
         f"global_acc={round_metrics.get('global_accuracy', 0.0):.4f} "
         f"global_loss={round_metrics.get('global_loss', 0.0):.4f} "
+        f"lr={learning_rate:.6f} "
+        f"lr_reason={lr_reason} "
         f"clients={round_metrics.get('num_participating_clients', 0)}/"
         f"{round_metrics.get('num_selected_clients', 0)} "
         f"round_time={round_metrics.get('round_time', 0.0):.2f}s "
