@@ -31,6 +31,13 @@ training:
   criterion: cross_entropy
   verbose: false
 
+communication:
+  compression_enabled: true
+  precision: float16
+  quantization_enabled: false
+  sparsification_enabled: true
+  sparsity_ratio: 0.3
+
 evaluation:
   frequency: 1
 

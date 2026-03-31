@@ -33,6 +33,12 @@ class MetricsTracker:
         metrics: List[ClientMetrics] = []
         for result in results:
             privacy_metadata = getattr(result, 'privacy_metadata', {}) or {}
+            communication_metadata = getattr(result, 'communication_metadata', {}) or {}
+            original_bytes = float(getattr(result, 'communication_original_bytes', 0.0))
+            compressed_bytes = float(getattr(result, 'communication_compressed_bytes', 0.0))
+            reduction_percentage = float(
+                communication_metadata.get('reduction_percentage', 0.0)
+            )
             metrics.append(
                 ClientMetrics(
                     round_num=int(round_num),
@@ -46,6 +52,18 @@ class MetricsTracker:
                     privacy_enabled=bool(getattr(result, 'privacy_enabled', False)),
                     privacy_overhead_time=float(
                         getattr(result, 'privacy_overhead_time', 0.0)
+                    ),
+                    communication_original_bytes=original_bytes,
+                    communication_compressed_bytes=compressed_bytes,
+                    communication_reduction_percentage=reduction_percentage,
+                    communication_precision=str(
+                        communication_metadata.get('precision', 'float32')
+                    ),
+                    communication_sparsification_enabled=bool(
+                        communication_metadata.get('sparsification_enabled', False)
+                    ),
+                    communication_sparsity_ratio=float(
+                        communication_metadata.get('sparsity_ratio', 0.0)
                     ),
                     clip_applied=bool(privacy_metadata.get('clip_applied', False)),
                     clip_factor=float(privacy_metadata.get('clip_factor', 1.0)),
@@ -74,6 +92,18 @@ class MetricsTracker:
         privacy_overheads = [item.privacy_overhead_time for item in client_metrics]
         privacy_noise_scales = [item.noise_scale for item in client_metrics]
         privacy_clip_flags = [item.clip_applied for item in client_metrics]
+        communication_original_bytes = [
+            item.communication_original_bytes for item in client_metrics
+        ]
+        communication_compressed_bytes = [
+            item.communication_compressed_bytes for item in client_metrics
+        ]
+        communication_precision_modes = [
+            item.communication_precision for item in client_metrics
+        ]
+        communication_sparsification_flags = [
+            item.communication_sparsification_enabled for item in client_metrics
+        ]
 
         model_size_bytes = estimate_model_size_bytes(
             model=model,
@@ -99,6 +129,23 @@ class MetricsTracker:
         global_accuracy = float(global_metrics.get('global_accuracy', 0.0))
         client_accuracy_mean = safe_mean(client_accuracies)
         privacy_accuracy_drop_estimate = max(0.0, client_accuracy_mean - global_accuracy)
+
+        total_original_bytes = float(sum(communication_original_bytes))
+        total_compressed_bytes = float(sum(communication_compressed_bytes))
+        total_saved_bytes = max(total_original_bytes - total_compressed_bytes, 0.0)
+        total_reduction_pct = (
+            (total_saved_bytes / total_original_bytes) * 100.0
+            if total_original_bytes > 0.0
+            else 0.0
+        )
+        dominant_precision = (
+            max(set(communication_precision_modes), key=communication_precision_modes.count)
+            if communication_precision_modes
+            else 'float32'
+        )
+        sparsification_enabled_fraction = safe_mean(
+            [1.0 if flag else 0.0 for flag in communication_sparsification_flags]
+        )
 
         return RoundMetrics(
             round_num=int(round_num),
@@ -130,6 +177,11 @@ class MetricsTracker:
             rounds_to_convergence_estimate=float(
                 convergence_metrics.get('rounds_to_convergence_estimate', float('inf'))
             ),
+            communication_compressed_cost_bytes=total_compressed_bytes,
+            communication_saved_bytes=total_saved_bytes,
+            communication_reduction_percentage=float(total_reduction_pct),
+            communication_precision_mode=str(dominant_precision),
+            communication_sparsification_enabled=float(sparsification_enabled_fraction),
             privacy_enabled_fraction=float(privacy_enabled_fraction),
             privacy_overhead_time_mean=float(privacy_overhead_time_mean),
             privacy_overhead_time_total=float(privacy_overhead_time_total),
