@@ -105,6 +105,7 @@ def main():
         metrics_output_dir=str(Path(args.output_dir) / 'metrics'),
     )
 
+    print("\nStarting Phase 11 federated training loop with communication optimization...")
     print("\nStarting Phase 10 federated training loop with adaptive optimization...")
     results = trainer.fit()
 

@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from typing import Any, Dict
 
 from ..aggregation.aggregation_base import AggregationStrategy
+from ..communication import CommunicationConfig, ModelCompressor
 from ..client.client import FederatedClient
 from ..evaluation.evaluator import EvaluationManager
 from ..server.server import FederatedServer
@@ -64,6 +65,18 @@ class RoundExecutor:
         )
 
         results = server_round['results']
+
+        communication_config = CommunicationConfig.from_dict(
+            (client_train_config or {}).get('communication', {})
+        )
+        compressor = ModelCompressor(communication_config)
+
+        for result in results:
+            communication_metadata = getattr(result, 'communication_metadata', {}) or {}
+            result.weights = compressor.decompress_model_update(
+                result.weights,
+                communication_metadata,
+            )
 
         if results:
             current_global_weights = self.server.get_global_parameters()

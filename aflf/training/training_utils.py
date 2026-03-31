@@ -30,6 +30,12 @@ class FederatedTrainingConfig:
     device: str = 'cpu'
     seed: int = 42
     verbose: bool = False
+    communication: Dict[str, Any] = None
+
+    def __post_init__(self) -> None:
+        """Initialize optional mutable fields safely."""
+        if self.communication is None:
+            self.communication = {}
     optimization: Dict[str, Any] = None
 
     def to_client_train_config(self) -> Dict[str, Any]:
@@ -46,6 +52,7 @@ class FederatedTrainingConfig:
                 'clip_norm': self.clip_norm,
                 'noise_multiplier': self.noise_multiplier,
             },
+            'communication': self.communication,
         }
 
     def __post_init__(self) -> None:
@@ -144,6 +151,7 @@ def build_federated_config(config: Dict[str, Any]) -> FederatedTrainingConfig:
     training = config.get('training', config)
     evaluation = config.get('evaluation', {})
     privacy = config.get('privacy', {})
+    communication = config.get('communication', {})
     optimization = config.get('optimization', {})
 
     return FederatedTrainingConfig(
@@ -163,6 +171,7 @@ def build_federated_config(config: Dict[str, Any]) -> FederatedTrainingConfig:
         device=str(training.get('device', federated.get('device', 'cpu'))),
         seed=int(config.get('seed', 42)),
         verbose=bool(training.get('verbose', False)),
+        communication=communication,
         optimization=optimization,
     )
 

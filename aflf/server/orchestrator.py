@@ -176,13 +176,21 @@ class Orchestrator:
         )
 
         # Step 2: Start round tracking
-        round_state = self.round_manager.start_round(
-            round_num=round_num,
-            selected_clients=selected_clients,
-            selection_scores=selection_result.client_scores,
-            selection_reasoning=selection_result.selection_reasoning,
-            selection_policy=selection_result.policy_name,
-        )
+        try:
+            round_state = self.round_manager.start_round(
+                round_num=round_num,
+                selected_clients=selected_clients,
+                selection_scores=selection_result.client_scores,
+                selection_reasoning=selection_result.selection_reasoning,
+                selection_policy=selection_result.policy_name,
+            )
+        except TypeError:
+            # Backward compatibility with RoundManager versions that do not
+            # expose selection metadata fields.
+            round_state = self.round_manager.start_round(
+                round_num=round_num,
+                selected_clients=selected_clients,
+            )
 
         # Step 3: Distribute model and collect results
         results, failed_clients, failure_reasons = self._distribute_and_collect(

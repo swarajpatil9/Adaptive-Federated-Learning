@@ -158,12 +158,21 @@ class FederatedServer:
         Raises:
             ValueError: If client already registered
         """
-        self.client_manager.register_client(
-            client_id=client_id,
-            dataset_size=dataset_size,
-            is_available=is_available,
-            resource_score=resource_score,
-        )
+        try:
+            self.client_manager.register_client(
+                client_id=client_id,
+                dataset_size=dataset_size,
+                is_available=is_available,
+                resource_score=resource_score,
+            )
+        except TypeError:
+            # Backward compatibility with ClientManager versions that do not
+            # yet support resource_score.
+            self.client_manager.register_client(
+                client_id=client_id,
+                dataset_size=dataset_size,
+                is_available=is_available,
+            )
         logger.info(f"Registered client {client_id} (dataset_size={dataset_size})")
 
     def execute_round(
@@ -275,9 +284,17 @@ class FederatedServer:
             'num_failed': len(round_result.failed_clients),
             'participation_rate': round_result.round_state.participation_rate,
             'selected_clients': round_result.round_state.selected_clients.copy(),
-            'selection_scores': round_result.round_state.selection_scores.copy(),
-            'selection_reasoning': round_result.round_state.selection_reasoning.copy(),
-            'selection_policy': round_result.round_state.selection_policy,
+            'selection_scores': dict(
+                getattr(round_result.round_state, 'selection_scores', {})
+            ),
+            'selection_reasoning': dict(
+                getattr(round_result.round_state, 'selection_reasoning', {})
+            ),
+            'selection_policy': getattr(
+                round_result.round_state,
+                'selection_policy',
+                'unknown',
+            ),
             'participating_clients': round_state.participating_clients.copy(),
             'failed_clients': round_result.failed_clients.copy(),
             'results': round_result.results,  # For aggregation in Phase 6

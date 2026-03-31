@@ -4,7 +4,7 @@ Client manager for federated learning server.
 Manages client registration, metadata tracking, and state queries.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, List, Optional
 
 from ..client.client import TrainingResult
@@ -33,9 +33,19 @@ class ClientMetadata:
     last_accuracy: Optional[float] = None
     last_loss: Optional[float] = None
     participation_count: int = 0
+    selection_count: int = 0
+    skipped_rounds: int = 0
     failure_count: int = 0
     total_training_time: float = 0.0
+    resource_score: float = 1.0
     last_round_participated: Optional[int] = None
+
+    @property
+    def average_training_time(self) -> float:
+        """Average training time used by dynamic latency scoring."""
+        if self.participation_count <= 0:
+            return 0.0
+        return float(self.total_training_time / self.participation_count)
 
 
 class ClientManager:
@@ -62,7 +72,11 @@ class ClientManager:
         self._clients: Dict[int, ClientMetadata] = {}
 
     def register_client(
-        self, client_id: int, dataset_size: int, is_available: bool = True
+        self,
+        client_id: int,
+        dataset_size: int,
+        is_available: bool = True,
+        resource_score: float = 1.0,
     ) -> None:
         """
         Register a new client.
@@ -82,7 +96,30 @@ class ClientManager:
             client_id=client_id,
             dataset_size=dataset_size,
             is_available=is_available,
+            resource_score=float(resource_score),
         )
+
+    def record_selection(
+        self,
+        round_num: int,
+        selected_client_ids: List[int],
+        available_clients: List[int],
+        scores: Optional[Dict[int, float]] = None,
+    ) -> None:
+        """Track selection count and skipped rounds for fairness-aware policies."""
+        del round_num
+        del scores
+
+        selected_set = set(selected_client_ids)
+        for client_id in available_clients:
+            if client_id not in self._clients:
+                continue
+            metadata = self._clients[client_id]
+            if client_id in selected_set:
+                metadata.selection_count += 1
+                metadata.skipped_rounds = 0
+            else:
+                metadata.skipped_rounds += 1
 
     def update_from_result(self, result: TrainingResult, round_num: int) -> None:
         """

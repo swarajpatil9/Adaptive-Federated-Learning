@@ -32,6 +32,8 @@ def format_round_summary(round_metrics: dict) -> str:
     privacy_enabled_fraction = round_metrics.get('privacy_enabled_fraction', 0.0)
     privacy_noise = round_metrics.get('privacy_noise_scale_mean', 0.0)
     privacy_overhead = round_metrics.get('privacy_overhead_time_mean', 0.0)
+    communication_reduction = round_metrics.get('communication_reduction_percentage', 0.0)
+    communication_precision = round_metrics.get('communication_precision_mode', 'float32')
     learning_rate = round_metrics.get('learning_rate', 0.0)
     lr_reason = round_metrics.get('lr_adjustment_reason', 'static')
     return (
@@ -44,6 +46,8 @@ def format_round_summary(round_metrics: dict) -> str:
         f"{round_metrics.get('num_selected_clients', 0)} "
         f"round_time={round_metrics.get('round_time', 0.0):.2f}s "
         f"comm={round_metrics.get('communication_cost_mb', 0.0):.2f}MB "
+        f"comm_reduction={communication_reduction:.2f}% "
+        f"comm_precision={communication_precision} "
         f"privacy={privacy_enabled_fraction:.2f} "
         f"noise={privacy_noise:.4f} "
         f"privacy_overhead={privacy_overhead:.4f}s"

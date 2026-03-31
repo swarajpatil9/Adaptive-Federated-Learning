@@ -19,6 +19,7 @@ from torch.utils.data import DataLoader
 
 from .client_utils import get_model_weights, set_model_weights
 from .trainer import LocalTrainer
+from ..communication import CommunicationConfig, ModelCompressor
 from ..privacy.dp_mechanism import PrivacyEngine
 from ..privacy.privacy_config import PrivacyConfig
 
@@ -65,6 +66,10 @@ class TrainingResult:
     privacy_enabled: bool = False
     privacy_overhead_time: float = 0.0
     privacy_metadata: Optional[Dict] = None
+    communication_enabled: bool = False
+    communication_original_bytes: float = 0.0
+    communication_compressed_bytes: float = 0.0
+    communication_metadata: Optional[Dict] = None
 
     def to_dict(self) -> Dict:
         """
@@ -87,6 +92,10 @@ class TrainingResult:
             'privacy_enabled': self.privacy_enabled,
             'privacy_overhead_time': self.privacy_overhead_time,
             'privacy_metadata': self.privacy_metadata or {},
+            'communication_enabled': self.communication_enabled,
+            'communication_original_bytes': self.communication_original_bytes,
+            'communication_compressed_bytes': self.communication_compressed_bytes,
+            'communication_metadata': self.communication_metadata or {},
         }
 
     def __repr__(self) -> str:
@@ -270,10 +279,18 @@ class FederatedClient:
             },
         }
 
+        communication_config = CommunicationConfig.from_dict(
+            config.get('communication', {})
+        )
+        model_compressor = ModelCompressor(communication_config)
+        compressed_weights, communication_metadata = model_compressor.compress_model_update(
+            privacy_result.protected_weights
+        )
+
         # Create result
         result = TrainingResult(
             client_id=self.client_id,
-            weights=privacy_result.protected_weights,
+            weights=compressed_weights,
             num_samples=train_metrics['num_samples'],
             train_loss=train_metrics['train_loss'],
             train_accuracy=train_metrics['train_accuracy'],
@@ -283,6 +300,12 @@ class FederatedClient:
             privacy_enabled=bool(privacy_result.metadata.get('privacy_enabled', False)),
             privacy_overhead_time=float(privacy_result.processing_time),
             privacy_metadata=merged_privacy_metadata,
+            communication_enabled=bool(communication_metadata.get('compression_enabled', False)),
+            communication_original_bytes=float(communication_metadata.get('original_bytes', 0.0)),
+            communication_compressed_bytes=float(
+                communication_metadata.get('compressed_bytes', 0.0)
+            ),
+            communication_metadata=communication_metadata,
         )
 
         if self.verbose:

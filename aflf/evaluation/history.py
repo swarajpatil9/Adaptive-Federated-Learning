@@ -22,6 +22,12 @@ class ClientMetrics:
     val_loss: Optional[float] = None
     privacy_enabled: bool = False
     privacy_overhead_time: float = 0.0
+    communication_original_bytes: float = 0.0
+    communication_compressed_bytes: float = 0.0
+    communication_reduction_percentage: float = 0.0
+    communication_precision: str = 'float32'
+    communication_sparsification_enabled: bool = False
+    communication_sparsity_ratio: float = 0.0
     clip_applied: bool = False
     clip_factor: float = 1.0
     noise_scale: float = 0.0
@@ -50,6 +56,11 @@ class RoundMetrics:
     accuracy_improvement_rate: float
     loss_decrease_rate: float
     rounds_to_convergence_estimate: float
+    communication_compressed_cost_bytes: float = 0.0
+    communication_saved_bytes: float = 0.0
+    communication_reduction_percentage: float = 0.0
+    communication_precision_mode: str = 'float32'
+    communication_sparsification_enabled: float = 0.0
     learning_rate: float = 0.0
     lr_change_ratio: float = 1.0
     lr_adjustment_reason: str = 'static'
