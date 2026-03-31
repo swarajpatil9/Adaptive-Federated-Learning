@@ -24,12 +24,30 @@ federated:
 training:
   local_epochs: 1
   batch_size: 32
-  learning_rate: 0.01
+  learning_rate: 0.001
   optimizer: sgd
   momentum: 0.9
   weight_decay: 0.0001
   criterion: cross_entropy
   verbose: false
+
+optimization:
+  adaptive_lr:
+    enabled: true
+    initial_lr: 0.001
+    min_lr: 0.0001
+    max_lr: 0.01
+    decay_factor: 0.95
+    slow_decay_factor: 0.98
+    plateau_decay_factor: 0.90
+    smoothing_factor: 0.2
+    min_decay_per_round: 0.0
+    max_decay_per_round: 0.20
+    loss_improvement_threshold: 0.01
+    plateau_threshold: 0.01
+    accuracy_improvement_threshold: 0.001
+    instability_std_threshold: 0.02
+    window_size: 3
 
 evaluation:
   frequency: 1

@@ -30,6 +30,7 @@ class FederatedTrainingConfig:
     device: str = 'cpu'
     seed: int = 42
     verbose: bool = False
+    optimization: Dict[str, Any] = None
 
     def to_client_train_config(self) -> Dict[str, Any]:
         """Convert to client-local training kwargs."""
@@ -46,6 +47,11 @@ class FederatedTrainingConfig:
                 'noise_multiplier': self.noise_multiplier,
             },
         }
+
+    def __post_init__(self) -> None:
+        """Initialize optional dict fields safely."""
+        if self.optimization is None:
+            self.optimization = {}
 
     def to_dict(self) -> Dict[str, Any]:
         """Return dictionary representation."""
@@ -138,6 +144,7 @@ def build_federated_config(config: Dict[str, Any]) -> FederatedTrainingConfig:
     training = config.get('training', config)
     evaluation = config.get('evaluation', {})
     privacy = config.get('privacy', {})
+    optimization = config.get('optimization', {})
 
     return FederatedTrainingConfig(
         num_rounds=int(federated.get('num_rounds', 10)),
@@ -156,6 +163,7 @@ def build_federated_config(config: Dict[str, Any]) -> FederatedTrainingConfig:
         device=str(training.get('device', federated.get('device', 'cpu'))),
         seed=int(config.get('seed', 42)),
         verbose=bool(training.get('verbose', False)),
+        optimization=optimization,
     )
 
 
