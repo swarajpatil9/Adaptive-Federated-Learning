@@ -61,6 +61,9 @@ class RoundMetrics:
     communication_reduction_percentage: float = 0.0
     communication_precision_mode: str = 'float32'
     communication_sparsification_enabled: float = 0.0
+    learning_rate: float = 0.0
+    lr_change_ratio: float = 1.0
+    lr_adjustment_reason: str = 'static'
     privacy_enabled_fraction: float = 0.0
     privacy_overhead_time_mean: float = 0.0
     privacy_overhead_time_total: float = 0.0

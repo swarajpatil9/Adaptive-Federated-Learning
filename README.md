@@ -19,6 +19,7 @@ aflf/
 ├── server/           # Server-side aggregation
 ├── aggregation/      # Aggregation strategies (FedAvg, weighted, etc.)
 ├── selection/        # Client selection mechanisms
+├── optimization/     # Adaptive learning-rate optimization
 ├── privacy/          # Privacy-preserving techniques
 ├── communication/    # Communication optimization
 ├── models/           # Neural network architectures

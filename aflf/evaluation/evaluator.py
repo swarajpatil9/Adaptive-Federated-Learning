@@ -124,6 +124,7 @@ class EvaluationManager:
         server_round: Dict[str, Any],
         round_time: float,
         criterion_name: str = 'cross_entropy',
+        optimization_metrics: Optional[Dict[str, Any]] = None,
     ) -> RoundMetrics:
         """Evaluate one round, track history, and return structured metrics."""
         global_metrics = self.global_evaluator.evaluate(
@@ -152,6 +153,7 @@ class EvaluationManager:
             model=model,
             total_training_time=time.time() - self.start_time,
             round_time=round_time,
+            optimization_metrics=optimization_metrics,
         )
 
         self.history.add_round_metrics(round_metrics)

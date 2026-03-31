@@ -106,6 +106,7 @@ def main():
     )
 
     print("\nStarting Phase 11 federated training loop with communication optimization...")
+    print("\nStarting Phase 10 federated training loop with adaptive optimization...")
     results = trainer.fit()
 
     summary = results['summary']

@@ -82,6 +82,7 @@ class MetricsTracker:
         model: nn.Module,
         total_training_time: float,
         round_time: float,
+        optimization_metrics: Dict[str, Any] = None,
     ) -> RoundMetrics:
         """Create structured round metrics from all metric sub-components."""
         num_participating = int(server_round.get('num_participating', len(client_metrics)))
@@ -129,6 +130,7 @@ class MetricsTracker:
         global_accuracy = float(global_metrics.get('global_accuracy', 0.0))
         client_accuracy_mean = safe_mean(client_accuracies)
         privacy_accuracy_drop_estimate = max(0.0, client_accuracy_mean - global_accuracy)
+        optimization_metrics = optimization_metrics or {}
 
         total_original_bytes = float(sum(communication_original_bytes))
         total_compressed_bytes = float(sum(communication_compressed_bytes))
@@ -182,6 +184,11 @@ class MetricsTracker:
             communication_reduction_percentage=float(total_reduction_pct),
             communication_precision_mode=str(dominant_precision),
             communication_sparsification_enabled=float(sparsification_enabled_fraction),
+            learning_rate=float(optimization_metrics.get('learning_rate', 0.0)),
+            lr_change_ratio=float(optimization_metrics.get('lr_change_ratio', 1.0)),
+            lr_adjustment_reason=str(
+                optimization_metrics.get('lr_adjustment_reason', 'static')
+            ),
             privacy_enabled_fraction=float(privacy_enabled_fraction),
             privacy_overhead_time_mean=float(privacy_overhead_time_mean),
             privacy_overhead_time_total=float(privacy_overhead_time_total),
