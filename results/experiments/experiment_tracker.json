@@ -1,0 +1,97 @@
+{
+  "num_records": 4,
+  "records": [
+    {
+      "experiment_name": "baseline",
+      "finished_at": "2026-04-03T18:17:16Z",
+      "metrics": {
+        "accuracy_cv": 0.114434,
+        "accuracy_mean": 0.74612,
+        "accuracy_std": 0.085381,
+        "communication_cost_mb": 40.210915,
+        "convergence_rounds": 5,
+        "final_accuracy": 0.8376,
+        "privacy_overhead_sec": 5.9e-05,
+        "training_time_sec": 29.946776
+      },
+      "run_index": 1,
+      "seed": 42,
+      "started_at": "2026-04-03T18:16:46Z",
+      "toggles": {
+        "adaptive_lr_enabled": false,
+        "compression_enabled": false,
+        "privacy_enabled": false,
+        "selection_enabled": false
+      }
+    },
+    {
+      "experiment_name": "aflf_full",
+      "finished_at": "2026-04-03T18:17:47Z",
+      "metrics": {
+        "accuracy_cv": 0.341871,
+        "accuracy_mean": 0.5392,
+        "accuracy_std": 0.184337,
+        "communication_cost_mb": 20.105457,
+        "convergence_rounds": 5,
+        "final_accuracy": 0.7042,
+        "privacy_overhead_sec": 0.111058,
+        "training_time_sec": 30.482146
+      },
+      "run_index": 1,
+      "seed": 42,
+      "started_at": "2026-04-03T18:17:16Z",
+      "toggles": {
+        "adaptive_lr_enabled": true,
+        "compression_enabled": true,
+        "privacy_enabled": true,
+        "selection_enabled": true
+      }
+    },
+    {
+      "experiment_name": "selection_only",
+      "finished_at": "2026-04-03T18:18:17Z",
+      "metrics": {
+        "accuracy_cv": 0.106582,
+        "accuracy_mean": 0.7527,
+        "accuracy_std": 0.080224,
+        "communication_cost_mb": 40.210915,
+        "convergence_rounds": 5,
+        "final_accuracy": 0.8401,
+        "privacy_overhead_sec": 5.6e-05,
+        "training_time_sec": 30.33436
+      },
+      "run_index": 1,
+      "seed": 42,
+      "started_at": "2026-04-03T18:17:47Z",
+      "toggles": {
+        "adaptive_lr_enabled": false,
+        "compression_enabled": false,
+        "privacy_enabled": false,
+        "selection_enabled": true
+      }
+    },
+    {
+      "experiment_name": "privacy_only",
+      "finished_at": "2026-04-03T18:18:48Z",
+      "metrics": {
+        "accuracy_cv": 0.333908,
+        "accuracy_mean": 0.57492,
+        "accuracy_std": 0.191971,
+        "communication_cost_mb": 40.210915,
+        "convergence_rounds": 3,
+        "final_accuracy": 0.7,
+        "privacy_overhead_sec": 0.112595,
+        "training_time_sec": 30.346324
+      },
+      "run_index": 1,
+      "seed": 42,
+      "started_at": "2026-04-03T18:18:17Z",
+      "toggles": {
+        "adaptive_lr_enabled": false,
+        "compression_enabled": false,
+        "privacy_enabled": true,
+        "selection_enabled": false
+      }
+    }
+  ]
+}

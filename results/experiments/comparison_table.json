@@ -1,0 +1,50 @@
+{
+  "columns": [
+    "method",
+    "accuracy",
+    "comm_cost_mb",
+    "rounds",
+    "time_sec",
+    "privacy_overhead_sec",
+    "stability_std"
+  ],
+  "generated_at": "2026-04-03T18:18:48Z",
+  "rows": [
+    {
+      "accuracy": 0.8376,
+      "comm_cost_mb": 40.210915,
+      "method": "baseline",
+      "privacy_overhead_sec": 5.9e-05,
+      "rounds": 5.0,
+      "stability_std": 0.085381,
+      "time_sec": 29.946776
+    },
+    {
+      "accuracy": 0.7042,
+      "comm_cost_mb": 20.105457,
+      "method": "aflf_full",
+      "privacy_overhead_sec": 0.111058,
+      "rounds": 5.0,
+      "stability_std": 0.184337,
+      "time_sec": 30.482146
+    },
+    {
+      "accuracy": 0.8401,
+      "comm_cost_mb": 40.210915,
+      "method": "selection_only",
+      "privacy_overhead_sec": 5.6e-05,
+      "rounds": 5.0,
+      "stability_std": 0.080224,
+      "time_sec": 30.33436
+    },
+    {
+      "accuracy": 0.7,
+      "comm_cost_mb": 40.210915,
+      "method": "privacy_only",
+      "privacy_overhead_sec": 0.112595,
+      "rounds": 3.0,
+      "stability_std": 0.191971,
+      "time_sec": 30.346324
+    }
+  ]
+}
