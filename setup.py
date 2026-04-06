@@ -12,6 +12,7 @@ setup(
         "torchvision>=0.16.0",
         "numpy>=1.24.0,<2.0.0",
         "scikit-learn>=1.3.0",
+        "pandas>=2.0.0",
         "opacus>=1.4.0",
         "pyyaml>=6.0",
         "tensorboard>=2.14.0",
