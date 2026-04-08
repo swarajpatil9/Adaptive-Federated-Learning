@@ -2,6 +2,7 @@
 Main entry point for federated learning experiments.
 
 Usage:
+    python main.py
     python main.py --config configs/baseline.yaml
 """
 
@@ -18,6 +19,8 @@ from aflf.training import (
     build_federated_config,
 )
 
+AFLF_VERSION = "1.0"
+
 
 def parse_args():
     """Parse command line arguments."""
@@ -27,10 +30,23 @@ def parse_args():
     )
 
     parser.add_argument(
+        "--version",
+        action="version",
+        version=f"AFLF Framework v{AFLF_VERSION}",
+    )
+
+    parser.add_argument(
         "--config",
         type=str,
-        required=True,
-        help="Path to configuration YAML file",
+        default="configs/baseline.yaml",
+        help="Optional configuration YAML path (defaults to baseline)",
+    )
+
+    parser.add_argument(
+        "--rounds",
+        type=int,
+        default=None,
+        help="Override federated.num_rounds from config for fast sanity runs",
     )
 
     parser.add_argument(
@@ -65,7 +81,7 @@ def parse_args():
         "--experiment",
         type=str,
         default=None,
-        help="Experiment name used in logs and metric exports",
+        help="Experiment name used for log/metric file prefixes",
     )
 
     return parser.parse_args()
@@ -125,6 +141,8 @@ def main():
 
         if args.seed is not None:
             config["seed"] = args.seed
+        if args.rounds is not None:
+            config.setdefault("federated", {})["num_rounds"] = int(args.rounds)
 
         ExperimentSeedManager.set_seed(int(config.get("seed", 42)), deterministic=True)
 
@@ -132,6 +150,8 @@ def main():
 
         if args.seed is not None:
             federated_config.seed = args.seed
+        if args.rounds is not None:
+            federated_config.num_rounds = int(args.rounds)
 
         if args.device is not None:
             federated_config.device = args.device

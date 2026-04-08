@@ -96,6 +96,20 @@ pip install -r requirements-dev.txt
 
 ## Usage
 
+### Quickstart
+
+Fast sanity run:
+
+```bash
+make quickstart
+```
+
+Or run directly:
+
+```bash
+python main.py --rounds 2
+```
+
 Run baseline experiment:
 
 ```bash

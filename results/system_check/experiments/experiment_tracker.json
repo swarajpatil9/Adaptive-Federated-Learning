@@ -1,0 +1,51 @@
+{
+  "num_records": 2,
+  "records": [
+    {
+      "experiment_name": "baseline",
+      "finished_at": "2026-04-08T17:27:36Z",
+      "metrics": {
+        "accuracy_cv": 0.017834,
+        "accuracy_mean": 0.94485,
+        "accuracy_std": 0.01685,
+        "communication_cost_mb": 6.433746,
+        "convergence_rounds": 2,
+        "final_accuracy": 0.9617,
+        "privacy_overhead_sec": 1.3e-05,
+        "training_time_sec": 24.943079
+      },
+      "run_index": 1,
+      "seed": 22,
+      "started_at": "2026-04-08T17:27:11Z",
+      "toggles": {
+        "adaptive_lr_enabled": false,
+        "compression_enabled": false,
+        "privacy_enabled": false,
+        "selection_enabled": false
+      }
+    },
+    {
+      "experiment_name": "aflf_full",
+      "finished_at": "2026-04-08T17:28:01Z",
+      "metrics": {
+        "accuracy_cv": 0.54027,
+        "accuracy_mean": 0.31475,
+        "accuracy_std": 0.17005,
+        "communication_cost_mb": 3.216873,
+        "convergence_rounds": 2,
+        "final_accuracy": 0.4848,
+        "privacy_overhead_sec": 0.017745,
+        "training_time_sec": 24.709241
+      },
+      "run_index": 1,
+      "seed": 22,
+      "started_at": "2026-04-08T17:27:36Z",
+      "toggles": {
+        "adaptive_lr_enabled": true,
+        "compression_enabled": true,
+        "privacy_enabled": true,
+        "selection_enabled": true
+      }
+    }
+  ]
+}

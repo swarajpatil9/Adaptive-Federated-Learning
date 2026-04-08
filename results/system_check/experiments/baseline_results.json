@@ -1,0 +1,231 @@
+{
+  "aggregated_metrics": {
+    "accuracy_cv": {
+      "ci_high": 0.017834,
+      "ci_low": 0.017834,
+      "mean": 0.017834
+    },
+    "accuracy_mean": {
+      "ci_high": 0.94485,
+      "ci_low": 0.94485,
+      "mean": 0.94485
+    },
+    "accuracy_std": {
+      "ci_high": 0.01685,
+      "ci_low": 0.01685,
+      "mean": 0.01685
+    },
+    "communication_cost_mb": {
+      "ci_high": 6.433746,
+      "ci_low": 6.433746,
+      "mean": 6.433746
+    },
+    "convergence_rounds": {
+      "ci_high": 2.0,
+      "ci_low": 2.0,
+      "mean": 2.0
+    },
+    "final_accuracy": {
+      "ci_high": 0.9617,
+      "ci_low": 0.9617,
+      "mean": 0.9617
+    },
+    "privacy_overhead_sec": {
+      "ci_high": 1.3e-05,
+      "ci_low": 1.3e-05,
+      "mean": 1.3e-05
+    },
+    "training_time_sec": {
+      "ci_high": 24.943079,
+      "ci_low": 24.943079,
+      "mean": 24.943079
+    }
+  },
+  "experiment": {
+    "adaptive_lr_enabled": false,
+    "base_config_path": "/Users/swarajpatil/Developer/adaptive-federated-learning/results/system_check/exp_baseline.yaml",
+    "compression_enabled": false,
+    "description": "baseline small",
+    "name": "baseline",
+    "num_runs": 1,
+    "output_subdir": "/Users/swarajpatil/Developer/adaptive-federated-learning/results/system_check/experiments",
+    "privacy_enabled": false,
+    "seed": 22,
+    "selection_enabled": false,
+    "tags": {}
+  },
+  "metrics": {
+    "accuracy_cv": 0.017834,
+    "accuracy_mean": 0.94485,
+    "accuracy_std": 0.01685,
+    "communication_cost_mb": 6.433746,
+    "convergence_rounds": 2.0,
+    "final_accuracy": 0.9617,
+    "privacy_overhead_sec": 1.3e-05,
+    "training_time_sec": 24.943079
+  },
+  "num_runs": 1,
+  "raw_results": [
+    {
+      "config": {
+        "batch_size": 16,
+        "clients_per_round": 2,
+        "clip_norm": 1.0,
+        "communication": {
+          "compression_enabled": false,
+          "precision": "float16",
+          "quantization_enabled": false,
+          "sparsification_enabled": true,
+          "sparsity_ratio": 0.3
+        },
+        "criterion": "cross_entropy",
+        "device": "cpu",
+        "evaluation_frequency": 1,
+        "learning_rate": 0.001,
+        "local_epochs": 1,
+        "momentum": 0.9,
+        "noise_multiplier": 0.05,
+        "num_rounds": 2,
+        "optimization": {
+          "adaptive_lr": {
+            "accuracy_improvement_threshold": 0.001,
+            "decay_factor": 0.95,
+            "enabled": false,
+            "initial_lr": 0.001,
+            "instability_std_threshold": 0.02,
+            "loss_improvement_threshold": 0.01,
+            "max_decay_per_round": 0.2,
+            "max_lr": 0.01,
+            "min_decay_per_round": 0.0,
+            "min_lr": 0.0001,
+            "plateau_decay_factor": 0.9,
+            "plateau_threshold": 0.01,
+            "slow_decay_factor": 0.98,
+            "smoothing_factor": 0.2,
+            "window_size": 3
+          }
+        },
+        "optimizer": "sgd",
+        "privacy_enabled": false,
+        "seed": 22,
+        "verbose": false,
+        "weight_decay": 0.0001
+      },
+      "evaluation_logs": {
+        "client_csv": "/Users/swarajpatil/Developer/adaptive-federated-learning/results/system_check/experiments/metrics/baseline_run1_phase7_20260408_225736_clients.csv",
+        "experiment_json": "/Users/swarajpatil/Developer/adaptive-federated-learning/results/system_check/experiments/metrics/baseline_run1_phase7_20260408_225736_experiment.json",
+        "round_csv": "/Users/swarajpatil/Developer/adaptive-federated-learning/results/system_check/experiments/metrics/baseline_run1_phase7_20260408_225736_rounds.csv"
+      },
+      "history": [
+        {
+          "accuracy_improvement_rate": 0.0,
+          "client_accuracy_mean": 0.5527666666666666,
+          "client_accuracy_variance": 5.921111111111158e-06,
+          "client_training_time_max": 6.2980711460113525,
+          "client_training_time_mean": 5.9109461307525635,
+          "client_training_time_min": 5.523821115493774,
+          "communication_compressed_cost_bytes": 3373136.0,
+          "communication_cost_bytes": 6746272,
+          "communication_cost_mb": 6.433746337890625,
+          "communication_precision_mode": "float16",
+          "communication_reduction_percentage": 0.0,
+          "communication_saved_bytes": 0.0,
+          "communication_sparsification_enabled": 1.0,
+          "f1_score": 0.9271165780813778,
+          "global_accuracy": 0.928,
+          "global_loss": 0.3012276728630066,
+          "learning_rate": 0.001,
+          "loss_decrease_rate": 0.0,
+          "lr_adjustment_reason": "static",
+          "lr_change_ratio": 1.0,
+          "model_size_bytes": 1686568,
+          "num_participating_clients": 2,
+          "num_selected_clients": 2,
+          "participation_rate": 1.0,
+          "precision": 0.9291543822885486,
+          "privacy_accuracy_drop_estimate": 0.0,
+          "privacy_clip_applied_fraction": 0.0,
+          "privacy_enabled_fraction": 0.0,
+          "privacy_noise_scale_mean": 0.0,
+          "privacy_overhead_time_mean": 4.291534423828125e-06,
+          "privacy_overhead_time_total": 8.58306884765625e-06,
+          "recall": 0.9273589540284778,
+          "round_num": 0,
+          "round_time": 11.82810378074646,
+          "rounds_to_convergence_estimate": Infinity,
+          "total_training_time": 12.878833055496216
+        },
+        {
+          "accuracy_improvement_rate": 0.03369999999999995,
+          "client_accuracy_mean": 0.8278666666666668,
+          "client_accuracy_variance": 5.377777777777407e-07,
+          "client_training_time_max": 5.521245002746582,
+          "client_training_time_mean": 5.5073031187057495,
+          "client_training_time_min": 5.493361234664917,
+          "communication_compressed_cost_bytes": 3373136.0,
+          "communication_cost_bytes": 6746272,
+          "communication_cost_mb": 6.433746337890625,
+          "communication_precision_mode": "float16",
+          "communication_reduction_percentage": 0.0,
+          "communication_saved_bytes": 0.0,
+          "communication_sparsification_enabled": 1.0,
+          "f1_score": 0.9613754612569971,
+          "global_accuracy": 0.9617,
+          "global_loss": 0.1376166126638651,
+          "learning_rate": 0.001,
+          "loss_decrease_rate": 0.1636110601991415,
+          "lr_adjustment_reason": "static",
+          "lr_change_ratio": 1.0,
+          "model_size_bytes": 1686568,
+          "num_participating_clients": 2,
+          "num_selected_clients": 2,
+          "participation_rate": 1.0,
+          "precision": 0.9615581224927905,
+          "privacy_accuracy_drop_estimate": 0.0,
+          "privacy_clip_applied_fraction": 0.0,
+          "privacy_enabled_fraction": 0.0,
+          "privacy_noise_scale_mean": 0.0,
+          "privacy_overhead_time_mean": 2.0265579223632812e-06,
+          "privacy_overhead_time_total": 4.0531158447265625e-06,
+          "recall": 0.9613775313902961,
+          "round_num": 1,
+          "round_time": 11.019697189331055,
+          "rounds_to_convergence_estimate": Infinity,
+          "total_training_time": 24.94174814224243
+        }
+      ],
+      "lr_history": [],
+      "summary": {
+        "avg_round_time": 11.423900485038757,
+        "final_global_accuracy": 0.9617,
+        "final_global_loss": 0.1376166126638651,
+        "final_participation_rate": 1.0,
+        "num_rounds": 2,
+        "total_communication_mb": 12.86749267578125,
+        "total_training_time": 24.943078994750977
+      }
+    }
+  ],
+  "runs": [
+    {
+      "metrics": {
+        "accuracy_cv": 0.017834,
+        "accuracy_mean": 0.94485,
+        "accuracy_std": 0.01685,
+        "communication_cost_mb": 6.433746,
+        "convergence_rounds": 2,
+        "final_accuracy": 0.9617,
+        "privacy_overhead_sec": 1.3e-05,
+        "training_time_sec": 24.943079
+      },
+      "run_index": 1,
+      "seed": 22,
+      "toggles": {
+        "adaptive_lr_enabled": false,
+        "compression_enabled": false,
+        "privacy_enabled": false,
+        "selection_enabled": false
+      }
+    }
+  ]
+}

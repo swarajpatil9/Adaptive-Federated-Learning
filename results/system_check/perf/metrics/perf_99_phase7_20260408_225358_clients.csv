@@ -1,0 +1,5 @@
+client_id,clip_applied,clip_factor,communication_compressed_bytes,communication_original_bytes,communication_precision,communication_reduction_percentage,communication_sparsification_enabled,communication_sparsity_ratio,noise_scale,num_samples,privacy_enabled,privacy_overhead_time,round_num,train_accuracy,train_loss,training_time,val_accuracy,val_loss
+3,False,1.0,1686568.0,1686568.0,float16,0.0,True,0.3,0.0,15000,False,5.9604644775390625e-06,0,0.5670666666666667,1.2895431932449342,7.992454290390015,,
+1,False,1.0,1686568.0,1686568.0,float16,0.0,True,0.3,0.0,15000,False,3.0994415283203125e-06,0,0.5683333333333334,1.286651064523061,8.06839919090271,,
+1,False,1.0,1686568.0,1686568.0,float16,0.0,True,0.3,0.0,15000,False,3.0994415283203125e-06,1,0.8365333333333334,0.5135859474658966,8.097695112228394,,
+2,False,1.0,1686568.0,1686568.0,float16,0.0,True,0.3,0.0,15000,False,3.0994415283203125e-06,1,0.8348666666666666,0.5168922839005788,8.04053807258606,,
