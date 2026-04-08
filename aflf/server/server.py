@@ -453,7 +453,7 @@ class FederatedServer:
             >>> print(paths['json'])  # Path to JSON file
         """
         if not self.metrics_tracker:
-            print("No metrics tracker configured")
+            logger.warning("No metrics tracker configured")
             return {}
 
         paths = {}

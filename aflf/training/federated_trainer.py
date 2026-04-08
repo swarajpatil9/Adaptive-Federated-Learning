@@ -6,11 +6,11 @@ initialize global model -> register clients -> select clients -> local train
 -> aggregate -> update global model -> evaluate -> repeat.
 """
 
+import logging
 from typing import Any, Dict, Optional
 
 from ..aggregation.fedavg import FedAvg
 from ..client import FederatedClient
-from ..client.client_utils import set_reproducibility
 from ..data.federated_data import FederatedDataModule
 from ..evaluation.evaluator import EvaluationManager
 from ..models.factory import create_model
@@ -18,8 +18,11 @@ from ..optimization import AdaptiveLRController
 from ..selection import DynamicSelectionStrategy
 from ..selection.selection_strategy import RandomSelection, SelectionStrategy
 from ..server.server import FederatedServer
+from ..system.seed import ExperimentSeedManager
 from .round_executor import RoundExecutor
 from .training_utils import FederatedTrainingConfig
+
+logger = logging.getLogger("aflf.training.federated_trainer")
 
 
 class FederatedTrainer:
@@ -45,7 +48,7 @@ class FederatedTrainer:
         self.data_module = data_module
         self.config = config
 
-        set_reproducibility(self.config.seed)
+        ExperimentSeedManager.set_seed(self.config.seed)
 
         self.selection_strategy = selection_strategy or RandomSelection(seed=self.config.seed)
         self.aggregation_strategy = FedAvg()
@@ -111,6 +114,8 @@ class FederatedTrainer:
 
     def fit(self) -> Dict[str, Any]:
         """Run full federated training process for configured rounds."""
+        logger.info("Training start: rounds=%s, clients_per_round=%s", self.config.num_rounds, self.config.clients_per_round)
+
         for round_num in range(self.config.num_rounds):
             # Phase 7 requires complete per-round evaluation and convergence tracking.
             should_evaluate = True
@@ -129,34 +134,59 @@ class FederatedTrainer:
 
             client_train_config = self.config.to_client_train_config()
 
-            output = self.round_executor.execute(
-                round_num=round_num,
-                clients=self.clients,
-                client_train_config=client_train_config,
-                run_evaluation=should_evaluate,
-                optimization_metrics=optimization_metrics,
+            logger.info(
+                "Round %s/%s started (lr=%.6f)",
+                round_num + 1,
+                self.config.num_rounds,
+                self.config.learning_rate,
             )
 
+            try:
+                output = self.round_executor.execute(
+                    round_num=round_num,
+                    clients=self.clients,
+                    client_train_config=client_train_config,
+                    run_evaluation=should_evaluate,
+                    optimization_metrics=optimization_metrics,
+                )
+            except Exception as exc:
+                logger.exception("Round %s failed and will be skipped: %s", round_num, exc)
+                continue
+
             if output.evaluation:
-                print(self.evaluator.format_round_report(output.evaluation))
+                logger.info(self.evaluator.format_round_report(output.evaluation))
 
                 if self.adaptive_lr_controller.is_enabled():
-                    lr_update = self.adaptive_lr_controller.update_after_round(
-                        round_num=round_num,
-                        global_loss=float(output.evaluation.get('global_loss', 0.0)),
-                        global_accuracy=float(
-                            output.evaluation.get('global_accuracy', 0.0)
-                        ),
-                    )
-                    self.config.learning_rate = float(lr_update['new_lr'])
-                    print(
-                        f"[AdaptiveLR] round={round_num:03d} "
-                        f"prev={lr_update['previous_lr']:.6f} "
-                        f"new={lr_update['new_lr']:.6f} "
-                        f"reason={lr_update['reason']}"
-                    )
+                    try:
+                        lr_update = self.adaptive_lr_controller.update_after_round(
+                            round_num=round_num,
+                            global_loss=float(output.evaluation.get('global_loss', 0.0)),
+                            global_accuracy=float(
+                                output.evaluation.get('global_accuracy', 0.0)
+                            ),
+                        )
+                        self.config.learning_rate = float(lr_update['new_lr'])
+                        logger.info(
+                            "[AdaptiveLR] round=%03d prev=%.6f new=%.6f reason=%s",
+                            round_num,
+                            lr_update['previous_lr'],
+                            lr_update['new_lr'],
+                            lr_update['reason'],
+                        )
+                    except Exception as exc:
+                        logger.exception(
+                            "Adaptive LR update failed at round %s: %s",
+                            round_num,
+                            exc,
+                        )
 
-        export_paths = self.evaluator.export_logs()
+        try:
+            export_paths = self.evaluator.export_logs()
+        except Exception as exc:
+            logger.exception("Failed to export evaluation logs: %s", exc)
+            export_paths = {}
+
+        logger.info("Training finished with %s completed rounds", len(self.evaluator.history.round_metrics))
 
         return {
             'config': self.config.to_dict(),
