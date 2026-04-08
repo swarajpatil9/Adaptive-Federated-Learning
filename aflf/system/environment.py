@@ -9,6 +9,8 @@ from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import List
 
+from packaging.requirements import Requirement
+
 
 @dataclass(frozen=True)
 class EnvironmentReport:
@@ -61,22 +63,30 @@ class DependencyChecker:
             stripped = line.strip()
             if not stripped or stripped.startswith("#") or stripped.startswith("-"):
                 continue
-            if "==" not in stripped:
+
+            try:
+                requirement = Requirement(stripped)
+            except Exception:
+                mismatches.append(f"Invalid requirement format: {stripped}")
                 continue
 
-            package, expected = stripped.split("==", 1)
-            package = package.strip()
-            expected = expected.strip()
+            package = requirement.name
 
             try:
                 installed = version(package)
             except PackageNotFoundError:
-                mismatches.append(f"{package} is not installed (expected {expected})")
+                if str(requirement.specifier):
+                    mismatches.append(
+                        f"{package} is not installed (expected {requirement.specifier})"
+                    )
+                else:
+                    mismatches.append(f"{package} is not installed")
                 continue
 
-            if installed != expected:
+            if requirement.specifier and not requirement.specifier.contains(installed):
                 mismatches.append(
-                    f"{package} version mismatch: installed {installed}, expected {expected}"
+                    f"{package} version mismatch: installed {installed}, "
+                    f"expected {requirement.specifier}"
                 )
 
         return mismatches

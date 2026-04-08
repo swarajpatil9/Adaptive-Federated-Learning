@@ -1,0 +1,54 @@
+seed: 42
+
+model:
+  name: simple_cnn
+  num_classes: 10
+  dropout_rate: 0.5
+
+data:
+  dataset_name: mnist
+  data_root: ./data
+  download: true
+  num_clients: 3
+  partition_strategy: iid
+  test_batch_size: 256
+  num_workers: 0
+
+federated:
+  num_rounds: 2
+  clients_per_round: 2
+  device: cpu
+
+training:
+  local_epochs: 1
+  batch_size: 32
+  learning_rate: 0.001
+  optimizer: sgd
+  momentum: 0.9
+  weight_decay: 0.0001
+  criterion: cross_entropy
+  verbose: false
+
+selection:
+  strategy: random
+
+privacy:
+  privacy_enabled: false
+  clip_norm: 1.0
+  noise_multiplier: 0.05
+
+optimization:
+  adaptive_lr:
+    enabled: false
+
+communication:
+  compression_enabled: false
+  precision: float16
+  quantization_enabled: false
+  sparsification_enabled: false
+
+# Flat convenience flags for smoke intent (not used by runtime parser):
+selection_enabled: false
+privacy_enabled: false
+adaptive_lr_enabled: false
+compression_enabled: false

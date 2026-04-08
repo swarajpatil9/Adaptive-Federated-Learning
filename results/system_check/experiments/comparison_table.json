@@ -1,0 +1,32 @@
+{
+  "columns": [
+    "method",
+    "accuracy",
+    "comm_cost_mb",
+    "rounds",
+    "time_sec",
+    "privacy_overhead_sec",
+    "stability_std"
+  ],
+  "generated_at": "2026-04-08T17:28:01Z",
+  "rows": [
+    {
+      "accuracy": 0.9617,
+      "comm_cost_mb": 6.433746,
+      "method": "baseline",
+      "privacy_overhead_sec": 1.3e-05,
+      "rounds": 2.0,
+      "stability_std": 0.01685,
+      "time_sec": 24.943079
+    },
+    {
+      "accuracy": 0.4848,
+      "comm_cost_mb": 3.216873,
+      "method": "aflf_full",
+      "privacy_overhead_sec": 0.017745,
+      "rounds": 2.0,
+      "stability_std": 0.17005,
+      "time_sec": 24.709241
+    }
+  ]
+}

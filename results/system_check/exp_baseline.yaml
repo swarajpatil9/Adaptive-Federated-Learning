@@ -1,0 +1,75 @@
+seed: 123
+model:
+  name: simple_cnn
+  num_classes: 10
+  dropout_rate: 0.5
+data:
+  dataset_name: mnist
+  data_root: ./data
+  download: true
+  num_clients: 4
+  partition_strategy: iid
+  test_batch_size: 256
+  num_workers: 0
+federated:
+  num_rounds: 2
+  clients_per_round: 2
+  device: cpu
+training:
+  local_epochs: 1
+  batch_size: 16
+  learning_rate: 0.001
+  optimizer: sgd
+  momentum: 0.9
+  weight_decay: 0.0001
+  criterion: cross_entropy
+  verbose: false
+communication:
+  compression_enabled: false
+  precision: float16
+  quantization_enabled: false
+  sparsification_enabled: true
+  sparsity_ratio: 0.3
+optimization:
+  adaptive_lr:
+    enabled: false
+    initial_lr: 0.001
+    min_lr: 0.0001
+    max_lr: 0.01
+    decay_factor: 0.95
+    slow_decay_factor: 0.98
+    plateau_decay_factor: 0.9
+    smoothing_factor: 0.2
+    min_decay_per_round: 0.0
+    max_decay_per_round: 0.2
+    loss_improvement_threshold: 0.01
+    plateau_threshold: 0.01
+    accuracy_improvement_threshold: 0.001
+    instability_std_threshold: 0.02
+    window_size: 3
+evaluation:
+  frequency: 1
+privacy:
+  privacy_enabled: false
+  clip_norm: 1.0
+  noise_multiplier: 0.05
+  secure_aggregation_enabled: false
+selection:
+  strategy: random
+  dynamic:
+    weights:
+      accuracy: 0.35
+      data_size: 0.2
+      reliability: 0.2
+      latency: 0.15
+      resource: 0.05
+      participation_boost: 0.05
+    policy:
+      name: hybrid
+      mode: hybrid
+      exploration_rate: 0.2
+      min_exploration_clients: 1
+      fairness_boost_weight: 0.15
+      max_skip_rounds: 5
+      enforce_max_skip: true
+      probabilistic_temperature: 1.0

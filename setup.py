@@ -19,6 +19,7 @@ setup(
         "matplotlib>=3.7.0",
         "seaborn>=0.12.0",
         "tqdm>=4.65.0",
+        "packaging>=24.0",
     ],
     extras_require={
         "dev": [
